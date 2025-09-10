@@ -7,7 +7,7 @@ import { Observable } from 'rxjs';
 })
 export class ApiService {
   private http = inject(HttpClient);
-  private apiUrl = '/api'; // URL relative pour fonctionner avec SSR
+  private apiUrl = '/'; // URL relative pour fonctionner avec SSR
 
   // Méthode pour récupérer le message de bienvenue
   getHello(): Observable<{ message: string }> {

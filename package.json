@@ -4,12 +4,12 @@
   "license": "MIT",
   "scripts": {
     "dev-frontend": "nx serve plant-shop-angular-universal --port=8300 --proxy-config proxy.conf.json",
-    "dev-backend": "PORT=4100 nx serve api",
+    "dev-backend": "PORT=4100 nx serve plant_shop_nest",
     "build-dev-frontend": "nx build plant-shop-angular-universal",
-    "build-dev-backend": "nx build api",
+    "build-dev-backend": "nx build plant_shop_nest",
     "build-prod-frontend": "nx build plant-shop-angular-universal --configuration=production",
-    "build-prod-backend": "nx build api --configuration=production",
-    "prod": "PORT=4100 node dist/apps/api/main.js"
+    "build-prod-backend": "nx build plant_shop_nest --configuration=production",
+    "prod": "PORT=4100 node dist/apps/plant_shop_nest/main.js"
   },
   "private": true,
   "dependencies": {
