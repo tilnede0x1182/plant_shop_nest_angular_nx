@@ -1,6 +1,6 @@
 // # Importations
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../../../prisma.service';
+import { PrismaService } from '../../prisma/prisma.service';
 import { CreatePlantDto, UpdatePlantDto } from './dto/plant.dto';
 
 /**

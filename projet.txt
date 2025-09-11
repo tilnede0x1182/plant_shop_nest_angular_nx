@@ -84,6 +84,8 @@
     "@prisma/client": "^6.16.1",
     "axios": "^1.6.0",
     "bcryptjs": "^3.0.2",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.2",
     "express": "^4.21.2",
     "reflect-metadata": "^0.1.13",
     "rxjs": "~7.8.0",
@@ -524,6 +526,39 @@ export default {
 
 
 
+## apps/plant_shop_nest/src/prisma/prisma.module.ts
+
+import { Module } from "@nestjs/common";
+import { PrismaService } from "./prisma.service";
+
+@Module({
+  providers: [PrismaService],
+  exports: [PrismaService],
+})
+export class PrismaModule {}
+
+
+
+## apps/plant_shop_nest/src/prisma/prisma.service.ts
+
+import { Injectable, OnModuleInit } from '@nestjs/common';
+import { PrismaClient } from '@prisma/client';
+
+@Injectable()
+export class PrismaService extends PrismaClient implements OnModuleInit {
+  async onModuleInit() {
+    await this.$connect();
+  }
+
+  async enableShutdownHooks(app: any) {
+    this.$on('beforeExit' as any, async () => {
+      await app.close();
+    });
+  }
+}
+
+
+
 ## apps/plant_shop_nest/src/app/app.service.ts
 
 import { Injectable } from '@nestjs/common';
@@ -543,11 +578,23 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AngularModule } from './angular/angular.module';
+import { PrismaModule } from '../prisma/prisma.module'; // Changer ceci
+import { UsersModule } from './users/users.module';
+import { PlantsModule } from './plants/plants.module';
+import { OrdersModule } from './orders/orders.module';
+import { OrderItemsModule } from './order-items/order-items.module';
 
 @Module({
-  imports: [AngularModule],
+  imports: [
+    AngularModule,
+    PrismaModule, // Utiliser le module ici
+    UsersModule,
+    PlantsModule,
+    OrdersModule,
+    OrderItemsModule,
+  ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService], // Supprimer PrismaService d'ici
 })
 export class AppModule {}
 
@@ -626,14 +673,22 @@ export class AppController {
 
 import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import { ValidationPipe } from '@nestjs/common';
 
 import { AppModule } from './app/app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // Configurez le préfixe global pour l'API
+  // Configurez le préfixe global pour l'API + Validation globale DTO
   app.setGlobalPrefix('');
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    })
+  );
 
   // Configurez CORS pour le développement
   app.enableCors({
