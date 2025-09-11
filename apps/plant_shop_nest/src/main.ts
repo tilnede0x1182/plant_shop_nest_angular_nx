@@ -1,13 +1,21 @@
 import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import { ValidationPipe } from '@nestjs/common';
 
 import { AppModule } from './app/app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // Configurez le préfixe global pour l'API
+  // Configurez le préfixe global pour l'API + Validation globale DTO
   app.setGlobalPrefix('');
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    })
+  );
 
   // Configurez CORS pour le développement
   app.enableCors({
