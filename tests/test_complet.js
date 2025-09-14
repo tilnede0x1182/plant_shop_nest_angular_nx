@@ -117,17 +117,17 @@ async function testOrders() {
 
     // Test d'échec attendu pour un order-item avec commande supprimée
     try {
-      await hit('POST', '/order-items', 201, {
+      await hit('POST', '/order-items', 500, {
         orderId,
         plantId,
         quantity: 1,
       });
       console.log(
-        "❌ Le test aurait dû échouer: création d'order-item avec un orderId supprimé"
+        "✅ Échec attendu pour creation d'order-item avec orderId supprimé"
       );
     } catch (e) {
       console.log(
-        "✅ Échec attendu pour creation d'order-item avec orderId supprimé"
+        '❌ Erreur inattendue lors du test order-item avec orderId supprimé'
       );
     }
 
