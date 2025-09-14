@@ -7,7 +7,32 @@
 │   │   ├── eslint.config.mjs
 │   │   ├── project.json
 │   │   ├── public
+│   │   │   └── favicon.ico
 │   │   ├── src
+│   │   │   ├── app
+│   │   │   │   ├── app.config.server.ts
+│   │   │   │   ├── app.config.ts
+│   │   │   │   ├── app.css
+│   │   │   │   ├── app.html
+│   │   │   │   ├── app.routes.ts
+│   │   │   │   ├── app.spec.ts
+│   │   │   │   ├── app.ts
+│   │   │   │   ├── components
+│   │   │   │   │   ├── hello.css
+│   │   │   │   │   ├── hello.html
+│   │   │   │   │   ├── hello.spec.ts
+│   │   │   │   │   └── hello.ts
+│   │   │   │   ├── nx-welcome.ts
+│   │   │   │   └── services
+│   │   │   │       ├── api.service.ts
+│   │   │   │       ├── api.spec.ts
+│   │   │   │       └── api.ts
+│   │   │   ├── index.html
+│   │   │   ├── main.server.ts
+│   │   │   ├── main.ts
+│   │   │   ├── server.ts
+│   │   │   ├── styles.css
+│   │   │   └── test-setup.ts
 │   │   ├── tsconfig.app.json
 │   │   ├── tsconfig.json
 │   │   ├── tsconfig.server.json
@@ -19,6 +44,44 @@
 │       ├── project.json
 │       ├── projet.txt
 │       ├── src
+│       │   ├── app
+│       │   │   ├── angular
+│       │   │   │   ├── angular.controller.ts
+│       │   │   │   └── angular.module.ts
+│       │   │   ├── app.controller.spec.ts
+│       │   │   ├── app.controller.ts
+│       │   │   ├── app.module.ts
+│       │   │   ├── app.service.spec.ts
+│       │   │   ├── app.service.ts
+│       │   │   ├── order-items
+│       │   │   │   ├── dto
+│       │   │   │   │   └── order-item.dto.ts
+│       │   │   │   ├── order-items.controller.ts
+│       │   │   │   ├── order-items.module.ts
+│       │   │   │   └── order-items.service.ts
+│       │   │   ├── orders
+│       │   │   │   ├── dto
+│       │   │   │   │   └── order.dto.ts
+│       │   │   │   ├── orders.controller.ts
+│       │   │   │   ├── orders.module.ts
+│       │   │   │   └── orders.service.ts
+│       │   │   ├── plants
+│       │   │   │   ├── dto
+│       │   │   │   │   └── plant.dto.ts
+│       │   │   │   ├── plants.controller.ts
+│       │   │   │   ├── plants.module.ts
+│       │   │   │   └── plants.service.ts
+│       │   │   └── users
+│       │   │       ├── dto
+│       │   │       │   └── user.dto.ts
+│       │   │       ├── users.controller.ts
+│       │   │       ├── users.module.ts
+│       │   │       └── users.service.ts
+│       │   ├── assets
+│       │   ├── main.ts
+│       │   └── prisma
+│       │       ├── prisma.module.ts
+│       │       └── prisma.service.ts
 │       ├── tsconfig.app.json
 │       ├── tsconfig.json
 │       ├── tsconfig.spec.json
@@ -35,6 +98,7 @@
 ├── prisma
 │   ├── migrations
 │   │   ├── 20250911153639_init
+│   │   │   └── migration.sql
 │   │   └── migration_lock.toml
 │   ├── schema.prisma
 │   ├── seed.ts
@@ -43,13 +107,15 @@
 ├── projet.txt
 ├── proxy.conf.json
 ├── README.md
+├── tests
+│   └── test_complet.js
 ├── tsconfig.base.json
 ├── tsconfig.json
 ├── tsconfig.seed.json
 ├── users.txt
 └── vitest.workspace.ts
 
-10 directories, 37 files
+26 directories, 87 files
 
 # CONFIGURATION
 #
@@ -141,6 +207,7 @@
     "jest-util": "^30.0.2",
     "jiti": "2.4.2",
     "jsdom": "~22.1.0",
+    "node-fetch": "^3.3.2",
     "nx": "21.5.1",
     "ora": "6.3.1",
     "prettier": "^2.6.2",
@@ -166,7 +233,6 @@
 }
 
 
-
 ## tsconfig.json
 
 {
@@ -181,11 +247,13 @@
 }
 
 
-
 ## nx.json
 
 {
   "$schema": "./node_modules/nx/schemas/nx-schema.json",
+  "tui": {
+    "enabled": false
+  },
   "namedInputs": {
     "default": ["{projectRoot}/**/*", "sharedGlobals"],
     "production": [
@@ -269,10 +337,11 @@
 
 
 
-
 # FICHIERS ANGULAR/NEST
 #
 ## prisma.config.ts
+
+import 'dotenv/config';
 
 import { defineConfig } from 'prisma/config';
 import path from 'node:path';
@@ -285,6 +354,66 @@ export default defineConfig({
   },
 });
 
+
+## prisma/schema.prisma
+
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-1.1.x", "debian-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             Int      @id @default(autoincrement())
+  email          String   @unique
+  name           String?
+  password       String
+  admin          Boolean  @default(false)
+  orders         Order[]
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model Plant {
+  id          Int         @id @default(autoincrement())
+  name        String
+  price       Int
+  description String?
+  stock       Int         @default(0)
+  orderItems  OrderItem[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+model Order {
+  id          Int         @id @default(autoincrement())
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      Int
+  totalPrice  Int?
+  status      String?
+  orderItems  OrderItem[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+model OrderItem {
+  id       Int    @id @default(autoincrement())
+  orderId  Int
+  plantId  Int
+  quantity Int
+  order    Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  plant    Plant  @relation(fields: [plantId], references: [id], onDelete: Cascade)
+}
 
 
 ## prisma/seed.ts
@@ -511,21 +640,8 @@ new SeedService().run().catch((err) => {
 
 
 
-## apps/plant_shop_nest/jest.config.ts
-
-export default {
-  displayName: 'plant_shop_nest',
-  preset: '../jest.preset.js',
-  testEnvironment: 'node',
-  transform: {
-    '^.+\\.[tj]s$': ['ts-jest', { tsconfig: '<rootDir>/tsconfig.spec.json' }],
-  },
-  moduleFileExtensions: ['ts', 'js', 'html'],
-  coverageDirectory: '../coverage/plant_shop_nest',
-};
-
-
-
+# PRISMA MODULE
+#
 ## apps/plant_shop_nest/src/prisma/prisma.module.ts
 
 import { Module } from "@nestjs/common";
@@ -536,7 +652,6 @@ import { PrismaService } from "./prisma.service";
   exports: [PrismaService],
 })
 export class PrismaModule {}
-
 
 
 ## apps/plant_shop_nest/src/prisma/prisma.service.ts
@@ -559,121 +674,12 @@ export class PrismaService extends PrismaClient implements OnModuleInit {
 
 
 
-## apps/plant_shop_nest/src/app/app.service.ts
-
-import { Injectable } from '@nestjs/common';
-
-@Injectable()
-export class AppService {
-  getData(): { message: string } {
-    return { message: 'Hello API' };
-  }
-}
-
-
-
-## apps/plant_shop_nest/src/app/app.module.ts
-
-import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
-import { AngularModule } from './angular/angular.module';
-import { PrismaModule } from '../prisma/prisma.module'; // Changer ceci
-import { UsersModule } from './users/users.module';
-import { PlantsModule } from './plants/plants.module';
-import { OrdersModule } from './orders/orders.module';
-import { OrderItemsModule } from './order-items/order-items.module';
-
-@Module({
-  imports: [
-    AngularModule,
-    PrismaModule, // Utiliser le module ici
-    UsersModule,
-    PlantsModule,
-    OrdersModule,
-    OrderItemsModule,
-  ],
-  controllers: [AppController],
-  providers: [AppService], // Supprimer PrismaService d'ici
-})
-export class AppModule {}
-
-
-
-## apps/plant_shop_nest/src/app/app.controller.spec.ts
-
-import { Test, TestingModule } from '@nestjs/testing';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
-
-describe('AppController', () => {
-  let app: TestingModule;
-
-  beforeAll(async () => {
-    app = await Test.createTestingModule({
-      controllers: [AppController],
-      providers: [AppService],
-    }).compile();
-  });
-
-  describe('getData', () => {
-    it('should return "Hello API"', () => {
-      const appController = app.get<AppController>(AppController);
-      expect(appController.getData()).toEqual({ message: 'Hello API' });
-    });
-  });
-});
-
-
-
-## apps/plant_shop_nest/src/app/app.service.spec.ts
-
-import { Test } from '@nestjs/testing';
-import { AppService } from './app.service';
-
-describe('AppService', () => {
-  let service: AppService;
-
-  beforeAll(async () => {
-    const app = await Test.createTestingModule({
-      providers: [AppService],
-    }).compile();
-
-    service = app.get<AppService>(AppService);
-  });
-
-  describe('getData', () => {
-    it('should return "Hello API"', () => {
-      expect(service.getData()).toEqual({ message: 'Hello API' });
-    });
-  });
-});
-
-
-
-## apps/plant_shop_nest/src/app/app.controller.ts
-
-import { Controller, Get } from '@nestjs/common';
-
-import { AppService } from './app.service';
-
-@Controller()
-export class AppController {
-  constructor(private readonly appService: AppService) {}
-
-  @Get('hello')
-  getData() {
-    return this.appService.getData();
-  }
-}
-
-
-
+# MAIN
+#
 ## apps/plant_shop_nest/src/main.ts
 
-import { Logger } from '@nestjs/common';
+import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
 
 import { AppModule } from './app/app.module';
 
@@ -711,102 +717,890 @@ bootstrap();
 
 
 
-## apps/plant-shop-angular-universal/src/test-setup.ts
+# APP MODULE
+#
+## apps/plant_shop_nest/src/app/app.controller.spec.ts
 
-import '@angular/compiler';
-import '@analogjs/vitest-angular/setup-zone';
+import { Test, TestingModule } from '@nestjs/testing';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
 
+describe('AppController', () => {
+  let app: TestingModule;
+
+  beforeAll(async () => {
+    app = await Test.createTestingModule({
+      controllers: [AppController],
+      providers: [AppService],
+    }).compile();
+  });
+
+  describe('getData', () => {
+    it('should return "Hello API"', () => {
+      const appController = app.get<AppController>(AppController);
+      expect(appController.getData()).toEqual({ message: 'Hello API' });
+    });
+  });
+});
+
+
+## apps/plant_shop_nest/src/app/app.controller.ts
+
+import { Controller, Get } from '@nestjs/common';
+
+import { AppService } from './app.service';
+
+@Controller()
+export class AppController {
+  constructor(private readonly appService: AppService) {}
+
+  @Get('hello')
+  getData() {
+    return this.appService.getData();
+  }
+}
+
+
+## apps/plant_shop_nest/src/app/app.module.ts
+
+import { Module } from '@nestjs/common';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
+import { AngularModule } from './angular/angular.module';
+import { PrismaModule } from '../prisma/prisma.module'; // Changer ceci
+import { UsersModule } from './users/users.module';
+import { PlantsModule } from './plants/plants.module';
+import { OrdersModule } from './orders/orders.module';
+import { OrderItemsModule } from './order-items/order-items.module';
+
+@Module({
+  imports: [
+    AngularModule,
+    PrismaModule, // Utiliser le module ici
+    UsersModule,
+    PlantsModule,
+    OrdersModule,
+    OrderItemsModule,
+  ],
+  controllers: [AppController],
+  providers: [AppService], // Supprimer PrismaService d'ici
+})
+export class AppModule {}
+
+
+## apps/plant_shop_nest/src/app/app.service.spec.ts
+
+import { Test } from '@nestjs/testing';
+import { AppService } from './app.service';
+
+describe('AppService', () => {
+  let service: AppService;
+
+  beforeAll(async () => {
+    const app = await Test.createTestingModule({
+      providers: [AppService],
+    }).compile();
+
+    service = app.get<AppService>(AppService);
+  });
+
+  describe('getData', () => {
+    it('should return "Hello API"', () => {
+      expect(service.getData()).toEqual({ message: 'Hello API' });
+    });
+  });
+});
+
+
+## apps/plant_shop_nest/src/app/app.service.ts
+
+import { Injectable } from '@nestjs/common';
+
+@Injectable()
+export class AppService {
+  getData(): { message: string } {
+    return { message: 'Hello API' };
+  }
+}
+
+
+
+# DTOs
+#
+## apps/plant_shop_nest/src/app/order-items/dto/order-item.dto.ts
+
+// # Importations
+import { IsInt, IsNotEmpty } from 'class-validator';
+
+// # Données (DTOs)
+export class CreateOrderItemDto {
+  @IsInt() @IsNotEmpty() orderId!: number;
+  @IsInt() @IsNotEmpty() plantId!: number;
+  @IsInt() @IsNotEmpty() quantity!: number;
+}
+
+export class UpdateOrderItemDto {
+  @IsInt() @IsNotEmpty() quantity!: number;
+}
+
+
+## apps/plant_shop_nest/src/app/orders/dto/order.dto.ts
+
+// # Importations
 import {
-  BrowserTestingModule,
-  platformBrowserTesting,
-} from '@angular/platform-browser/testing';
-import { getTestBed } from '@angular/core/testing';
+  IsInt,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  IsArray,
+  ValidateNested,
+} from 'class-validator';
+import { Type } from 'class-transformer';
 
-getTestBed().initTestEnvironment(
-  BrowserTestingModule,
-  platformBrowserTesting()
-);
+// # Données (DTOs)
+export class OrderItemDto {
+  @IsInt() @IsNotEmpty() plantId!: number;
+  @IsInt() @IsNotEmpty() quantity!: number;
+}
+
+export class CreateOrderDto {
+  @IsInt() @IsNotEmpty() userId!: number;
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => OrderItemDto)
+  items!: OrderItemDto[];
+}
+
+export class UpdateOrderDto {
+  @IsString() @IsOptional() status?: string;
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => OrderItemDto)
+  @IsOptional()
+  items?: OrderItemDto[];
+}
+
+
+## apps/plant_shop_nest/src/app/plants/dto/plant.dto.ts
+
+// # Importations
+import {
+  IsInt,
+  IsNotEmpty,
+  IsOptional,
+  IsPositive,
+  IsString,
+} from 'class-validator';
+
+// # Données (DTOs)
+export class CreatePlantDto {
+  /** Nom de la plante */
+  @IsString() @IsNotEmpty() name!: string;
+  /** Prix unitaire */
+  @IsInt() @IsPositive() price!: number;
+  /** Description optionnelle */
+  @IsString() @IsOptional() description?: string;
+  /** Stock disponible */
+  @IsInt() @IsPositive() stock!: number;
+}
+
+export class UpdatePlantDto {
+  @IsString() @IsOptional() name?: string;
+  @IsInt() @IsPositive() @IsOptional() price?: number;
+  @IsString() @IsOptional() description?: string;
+  @IsInt() @IsPositive() @IsOptional() stock?: number;
+}
+
+
+## apps/plant_shop_nest/src/app/users/dto/user.dto.ts
+
+// # Importations
+import {
+  IsEmail,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  IsBoolean,
+} from 'class-validator';
+
+// # Données (DTOs)
+export class CreateUserDto {
+  @IsEmail() email!: string;
+  @IsString() @IsNotEmpty() name!: string;
+  @IsString() @IsNotEmpty() password!: string;
+  @IsBoolean() @IsOptional() admin?: boolean;
+}
+
+export class UpdateUserDto {
+  @IsEmail() @IsOptional() email?: string;
+  @IsString() @IsOptional() name?: string;
+  @IsString() @IsOptional() password?: string;
+  @IsBoolean() @IsOptional() admin?: boolean;
+}
 
 
 
-## apps/plant-shop-angular-universal/src/server.ts
+# CONTROLLERS
+#
+## apps/plant_shop_nest/src/app/angular/angular.controller.ts
 
-import 'zone.js/node';
-
-import { APP_BASE_HREF } from '@angular/common';
-import { CommonEngine } from '@angular/ssr/node';
+import { Controller, Get, Req, Res, All } from '@nestjs/common';
+import { Request, Response } from 'express';
+import { join } from 'path';
 import * as express from 'express';
-import { existsSync } from 'node:fs';
-import { join } from 'node:path';
-import bootstrap from './main.server';
 
-// The Express app is exported so that it can be used by serverless Functions.
-export function app(): express.Express {
-  const server = express();
-  const distFolder = join(
+@Controller('')
+export class AngularController {
+  private distFolder = join(
     process.cwd(),
     'dist/apps/plant-shop-angular-universal/browser'
   );
-  const indexHtml = existsSync(join(distFolder, 'index.original.html'))
-    ? join(distFolder, 'index.original.html')
-    : join(distFolder, 'index.html');
 
-  const commonEngine = new CommonEngine();
+  constructor() {}
 
-  server.set('view engine', 'html');
-  server.set('views', distFolder);
+  @Get('')
+  serveRoot(@Res() res: Response) {
+    res.sendFile(join(this.distFolder, 'index.html'));
+  }
 
-  // Example Express Rest API endpoints
-  // server.get('//**', (req, res) => { });
-  // Serve static files from /browser
-  server.get(
-    '*.*',
-    express.static(distFolder, {
-      maxAge: '1y',
-    })
-  );
+  @All('*')
+  serveAngular(@Req() req: Request, @Res() res: Response) {
+    // Si l'URL commence par /, on ne fait rien
+    if (req.url.startsWith('/')) {
+      return;
+    }
 
-  // All regular routes use the Angular engine
-  server.get('*', (req, res, next) => {
-    const { protocol, originalUrl, baseUrl, headers } = req;
-
-    commonEngine
-      .render({
-        bootstrap,
-        documentFilePath: indexHtml,
-        url: `${protocol}://${headers.host}${originalUrl}`,
-        publicPath: distFolder,
-        providers: [{ provide: APP_BASE_HREF, useValue: baseUrl }],
-      })
-      .then((html) => res.send(html))
-      .catch((err) => next(err));
-  });
-
-  return server;
+    // Sinon, on sert l'application Angular
+    res.sendFile(join(this.distFolder, 'index.html'));
+  }
 }
 
-function run(): void {
-  const port = process.env['PORT'] || 4000;
 
-  // Start up the Node server
-  const server = app();
-  server.listen(port, () => {
-    console.log(`Node Express server listening on http://localhost:${port}`);
-  });
+## apps/plant_shop_nest/src/app/order-items/order-items.controller.ts
+
+// # Importations
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Param,
+  Body,
+  ParseIntPipe,
+} from '@nestjs/common';
+import { OrderItemsService } from './order-items.service';
+import { CreateOrderItemDto, UpdateOrderItemDto } from './dto/order-item.dto';
+
+/**
+  Contrôleur OrderItems, routes REST CRUD
+  @constructor OrderItemsService service métier injecté
+*/
+@Controller('order-items')
+export class OrderItemsController {
+  constructor(private readonly orderItemsService: OrderItemsService) {}
+
+  /** GET /order-items : liste tous les orderItems */
+  @Get()
+  list() {
+    return this.orderItemsService.list();
+  }
+
+  /** GET /order-items/:id : détail d'un orderItem */
+  @Get(':id')
+  one(@Param('id', ParseIntPipe) id: number) {
+    return this.orderItemsService.one(id);
+  }
+
+  /** POST /order-items : création d'un orderItem */
+  @Post()
+  create(@Body() dto: CreateOrderItemDto) {
+    return this.orderItemsService.create(dto);
+  }
+
+  /** PATCH /order-items/:id : maj d'un orderItem */
+  @Patch(':id')
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateOrderItemDto
+  ) {
+    return this.orderItemsService.update(id, dto);
+  }
+
+  /** DELETE /order-items/:id : suppression d'un orderItem */
+  @Delete(':id')
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.orderItemsService.remove(id);
+  }
 }
 
-// Webpack will replace 'require' with '__webpack_require__'
-// '__non_webpack_require__' is a proxy to Node 'require'
-// The below code is to ensure that the server is run only when not requiring the bundle.
-declare const __non_webpack_require__: NodeRequire;
-const mainModule = __non_webpack_require__.main;
-const moduleFilename = (mainModule && mainModule.filename) || '';
-if (moduleFilename === __filename || moduleFilename.includes('iisnode')) {
-  run();
+
+## apps/plant_shop_nest/src/app/orders/orders.controller.ts
+
+// # Importations
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Param,
+  Body,
+  ParseIntPipe,
+} from '@nestjs/common';
+import { OrdersService } from './orders.service';
+import { CreateOrderDto, UpdateOrderDto } from './dto/order.dto';
+
+/**
+  Contrôleur Commandes, routes REST CRUD
+  @constructor OrdersService service métier injecté
+*/
+@Controller('orders')
+export class OrdersController {
+  constructor(private readonly ordersService: OrdersService) {}
+
+  /** GET /orders : liste toutes les commandes */
+  @Get()
+  list() {
+    return this.ordersService.list();
+  }
+
+  /** GET /orders/:id : détail d'une commande */
+  @Get(':id')
+  one(@Param('id', ParseIntPipe) id: number) {
+    return this.ordersService.one(id);
+  }
+
+  /** POST /orders : création d'une commande */
+  @Post()
+  create(@Body() dto: CreateOrderDto) {
+    return this.ordersService.create(dto);
+  }
+
+  /** PATCH /orders/:id : maj d'une commande */
+  @Patch(':id')
+  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateOrderDto) {
+    return this.ordersService.update(id, dto);
+  }
+
+  /** DELETE /orders/:id : suppression d'une commande */
+  @Delete(':id')
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.ordersService.remove(id);
+  }
 }
 
-export default bootstrap;
 
+## apps/plant_shop_nest/src/app/plants/plants.controller.ts
+
+// # Importations
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Param,
+  Body,
+  ParseIntPipe,
+} from '@nestjs/common';
+import { PlantsService } from './plants.service';
+import { CreatePlantDto, UpdatePlantDto } from './dto/plant.dto';
+
+/**
+  Contrôleur Plantes, routes REST CRUD
+  @constructor PlantsService service métier injecté
+*/
+@Controller('plants')
+export class PlantsController {
+  constructor(private readonly plantsService: PlantsService) {}
+
+  /** GET /plants : liste toutes les plantes */
+  @Get()
+  list() {
+		console.log('[PLANTS] route', 'GET /plants');
+    return this.plantsService.list();
+  }
+
+  /** GET /plants/:id : détail d'une plante */
+  @Get(':id')
+  one(@Param('id', ParseIntPipe) id: number) {
+    return this.plantsService.one(id);
+  }
+
+  /** POST /plants : création d'une plante */
+  @Post()
+  create(@Body() dto: CreatePlantDto) {
+    return this.plantsService.create(dto);
+  }
+
+  /** PATCH /plants/:id : maj d'une plante */
+  @Patch(':id')
+  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdatePlantDto) {
+    return this.plantsService.update(id, dto);
+  }
+
+  /** DELETE /plants/:id : suppression d'une plante */
+  @Delete(':id')
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.plantsService.remove(id);
+  }
+}
+
+
+## apps/plant_shop_nest/src/app/users/users.controller.ts
+
+// # Importations
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Param,
+  Body,
+  ParseIntPipe,
+} from '@nestjs/common';
+import { UsersService } from './users.service';
+import { CreateUserDto, UpdateUserDto } from './dto/user.dto';
+
+/**
+  Contrôleur Utilisateurs, routes REST CRUD
+  @constructor UsersService service métier injecté
+*/
+@Controller('users')
+export class UsersController {
+  constructor(private readonly usersService: UsersService) {}
+
+  /** GET /users : liste tous les utilisateurs */
+  @Get()
+  list() {
+    return this.usersService.list();
+  }
+
+  /** GET /users/:id : détail d'un utilisateur */
+  @Get(':id')
+  one(@Param('id', ParseIntPipe) id: number) {
+    return this.usersService.one(id);
+  }
+
+  /** POST /users : création d'un utilisateur */
+  @Post()
+  create(@Body() dto: CreateUserDto) {
+    return this.usersService.create(dto);
+  }
+
+  /** PATCH /users/:id : maj d'un utilisateur */
+  @Patch(':id')
+  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateUserDto) {
+    return this.usersService.update(id, dto);
+  }
+
+  /** DELETE /users/:id : suppression d'un utilisateur */
+  @Delete(':id')
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.usersService.remove(id);
+  }
+}
+
+
+
+# SERVICES
+#
+## apps/plant_shop_nest/src/app/order-items/order-items.service.ts
+
+// # Importations
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { PrismaService } from '../../prisma/prisma.service';
+import { CreateOrderItemDto, UpdateOrderItemDto } from './dto/order-item.dto';
+
+/**
+  Service métier OrderItems, accès base via Prisma
+  @constructor PrismaService service Prisma injecté
+*/
+@Injectable()
+export class OrderItemsService {
+  constructor(private readonly prisma: PrismaService) {}
+
+  /**
+	  Liste tous les orderItems (inclut plante et commande)
+	*/
+  async list() {
+    return this.prisma.orderItem.findMany({
+      include: { plant: true, order: true },
+    });
+  }
+
+  /**
+	  Récupère un orderItem par id
+	  @id identifiant numérique orderItem
+	*/
+  async one(id: number) {
+    const orderItem = await this.prisma.orderItem.findUnique({
+      where: { id },
+      include: { plant: true, order: true },
+    });
+    if (!orderItem) throw new NotFoundException('OrderItem non trouvé');
+    return orderItem;
+  }
+
+  /**
+	  Création orderItem
+	  @dto données orderItem
+	*/
+  async create(dto: CreateOrderItemDto) {
+    return this.prisma.orderItem.create({ data: dto });
+  }
+
+  /**
+	  Mise à jour orderItem (quantité)
+	  @id identifiant orderItem
+	  @dto données mises à jour
+	*/
+  async update(id: number, dto: UpdateOrderItemDto) {
+    return this.prisma.orderItem.update({ where: { id }, data: dto });
+  }
+
+  /**
+	  Suppression orderItem
+	  @id identifiant orderItem
+	*/
+  async remove(id: number) {
+    return this.prisma.orderItem.delete({ where: { id } });
+  }
+}
+
+
+## apps/plant_shop_nest/src/app/orders/orders.service.ts
+
+// # Importations
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
+import { PrismaService } from '../../prisma/prisma.service';
+import { CreateOrderDto, UpdateOrderDto } from './dto/order.dto';
+
+/**
+  Service métier des commandes, accès base via Prisma
+  @constructor PrismaService service Prisma injecté
+*/
+@Injectable()
+export class OrdersService {
+  constructor(private readonly prisma: PrismaService) {}
+
+  /**
+	  Liste toutes les commandes (optionnel : inclure items/plantes)
+	*/
+  async list() {
+    return this.prisma.order.findMany({
+      include: { orderItems: { include: { plant: true } } },
+    });
+  }
+
+  /**
+	  Détail commande par id (inclut items/plantes)
+	  @id identifiant numérique commande
+	*/
+  async one(id: number) {
+    const order = await this.prisma.order.findUnique({
+      where: { id },
+      include: { orderItems: { include: { plant: true } } },
+    });
+    if (!order) throw new NotFoundException('Commande non trouvée');
+    return order;
+  }
+
+  /**
+	  Création commande (vérifie stock, crée orderItems, maj stock, calcule total)
+	  @dto données commande
+	*/
+  async create(dto: CreateOrderDto) {
+    let total = 0;
+    const { userId, items } = dto;
+
+    const order = await this.prisma.order.create({
+      data: { userId, status: 'confirmed', totalPrice: 0 },
+    });
+
+    for (const item of items) {
+      const plant = await this.prisma.plant.findUnique({
+        where: { id: item.plantId },
+      });
+      if (!plant || plant.stock < item.quantity) {
+        throw new BadRequestException(
+          `Stock insuffisant pour la plante ${item.plantId}`
+        );
+      }
+      total += plant.price * item.quantity;
+      await this.prisma.plant.update({
+        where: { id: plant.id },
+        data: { stock: plant.stock - item.quantity },
+      });
+      await this.prisma.orderItem.create({
+        data: { orderId: order.id, plantId: plant.id, quantity: item.quantity },
+      });
+    }
+
+    return this.prisma.order.update({
+      where: { id: order.id },
+      data: { totalPrice: total },
+    });
+  }
+
+  /**
+	  Mise à jour commande (statut, items)
+	  @id identifiant commande
+	  @dto données mises à jour
+	*/
+  async update(id: number, dto: UpdateOrderDto) {
+    return this.prisma.order.update({ where: { id }, data: dto });
+  }
+
+  /**
+	  Suppression commande (+ suppression items liés)
+	  @id identifiant commande
+	*/
+  async remove(id: number) {
+    await this.prisma.orderItem.deleteMany({ where: { orderId: id } });
+    return this.prisma.order.delete({ where: { id } });
+  }
+}
+
+
+## apps/plant_shop_nest/src/app/plants/plants.service.ts
+
+// # Importations
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { PrismaService } from '../../prisma/prisma.service';
+import { CreatePlantDto, UpdatePlantDto } from './dto/plant.dto';
+
+/**
+  Service métier des plantes, accès base via Prisma
+  @constructor PrismaService service Prisma injecté
+*/
+@Injectable()
+export class PlantsService {
+  constructor(private readonly prisma: PrismaService) {}
+
+  /**
+	  Retourne toutes les plantes disponibles (stock >= 1)
+	*/
+  async list() {
+    return this.prisma.plant.findMany({
+      where: { stock: { gte: 1 } },
+      orderBy: { name: 'asc' },
+    });
+  }
+
+  /**
+	  Retourne une plante par id
+	  @id identifiant numérique plante
+	*/
+  async one(id: number) {
+    const plant = await this.prisma.plant.findUnique({ where: { id } });
+    if (!plant) throw new NotFoundException('Plante non trouvée');
+    return plant;
+  }
+
+  /**
+	  Création plante
+	  @dto données plante
+	*/
+  async create(dto: CreatePlantDto) {
+    return this.prisma.plant.create({ data: dto });
+  }
+
+  /**
+	  Mise à jour plante
+	  @id identifiant plante
+	  @dto données mises à jour
+	*/
+  async update(id: number, dto: UpdatePlantDto) {
+    return this.prisma.plant.update({ where: { id }, data: dto });
+  }
+
+  /**
+	  Suppression plante
+	  @id identifiant plante
+	*/
+  async remove(id: number) {
+    return this.prisma.plant.delete({ where: { id } });
+  }
+}
+
+
+## apps/plant_shop_nest/src/app/users/users.service.ts
+
+// # Importations
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { PrismaService } from '../../prisma/prisma.service';
+import { CreateUserDto, UpdateUserDto } from './dto/user.dto';
+import * as bcrypt from 'bcryptjs';
+
+/**
+  Service métier des utilisateurs, accès base via Prisma
+  @constructor PrismaService service Prisma injecté
+*/
+@Injectable()
+export class UsersService {
+  constructor(private readonly prisma: PrismaService) {}
+
+  /**
+	  Liste tous les utilisateurs (admins d'abord, tri par nom)
+	*/
+  async list() {
+    return this.prisma.user.findMany({
+      orderBy: [{ admin: 'desc' }, { name: 'asc' }],
+    });
+  }
+
+  /**
+	  Récupère un utilisateur par id
+	  @id identifiant numérique utilisateur
+	*/
+  async one(id: number) {
+    const user = await this.prisma.user.findUnique({ where: { id } });
+    if (!user) throw new NotFoundException('Utilisateur non trouvé');
+    return user;
+  }
+
+  /**
+	  Création utilisateur (mot de passe hashé)
+	  @dto données utilisateur
+	*/
+  async create(dto: CreateUserDto) {
+    const data = { ...dto, password: await bcrypt.hash(dto.password, 10) };
+    return this.prisma.user.create({ data });
+  }
+
+  /**
+	  Mise à jour utilisateur
+	  @id identifiant utilisateur
+	  @dto données mises à jour (hash password si présent)
+	*/
+  async update(id: number, dto: UpdateUserDto) {
+    const data = { ...dto };
+    if (data.password) data.password = await bcrypt.hash(data.password, 10);
+    return this.prisma.user.update({ where: { id }, data });
+  }
+
+  /**
+	  Suppression utilisateur
+	  @id identifiant utilisateur
+	*/
+  async remove(id: number) {
+    return this.prisma.user.delete({ where: { id } });
+  }
+}
+
+
+
+# MODULES
+#
+## apps/plant_shop_nest/src/app/angular/angular.module.ts
+
+import { Module, MiddlewareConsumer, NestModule } from '@nestjs/common';
+import { AngularController } from './angular.controller';
+import { join } from 'path';
+import * as express from 'express';
+
+@Module({
+  controllers: [AngularController],
+})
+export class AngularModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    // Servir les fichiers statiques
+    consumer
+      .apply(
+        express.static(
+          join(process.cwd(), 'dist/apps/plant-shop-angular-universal/browser')
+        )
+      )
+      .forRoutes('*');
+  }
+}
+
+
+## apps/plant_shop_nest/src/app/order-items/order-items.module.ts
+
+import { Module } from '@nestjs/common';
+import { OrderItemsController } from './order-items.controller';
+import { OrderItemsService } from './order-items.service';
+import { PrismaModule } from '../../prisma/prisma.module';
+
+@Module({
+  imports: [PrismaModule],
+  controllers: [OrderItemsController],
+  providers: [OrderItemsService],
+  exports: [OrderItemsService],
+})
+export class OrderItemsModule {}
+
+
+## apps/plant_shop_nest/src/app/orders/orders.module.ts
+
+import { Module } from '@nestjs/common';
+import { OrdersController } from './orders.controller';
+import { OrdersService } from './orders.service';
+import { PrismaModule } from '../../prisma/prisma.module';
+
+@Module({
+  imports: [PrismaModule],
+  controllers: [OrdersController],
+  providers: [OrdersService],
+  exports: [OrdersService],
+})
+export class OrdersModule {}
+
+
+## apps/plant_shop_nest/src/app/plants/plants.module.ts
+
+import { Module } from '@nestjs/common';
+import { PlantsController } from './plants.controller';
+import { PlantsService } from './plants.service';
+import { PrismaModule } from '../../prisma/prisma.module';
+
+@Module({
+  imports: [PrismaModule],
+  controllers: [PlantsController],
+  providers: [PlantsService],
+  exports: [PlantsService],
+})
+export class PlantsModule {}
+
+
+## apps/plant_shop_nest/src/app/users/users.module.ts
+
+import { Module } from '@nestjs/common';
+import { UsersController } from './users.controller';
+import { UsersService } from './users.service';
+import { PrismaModule } from '../../prisma/prisma.module';
+
+@Module({
+  imports: [PrismaModule],
+  controllers: [UsersController],
+  providers: [UsersService],
+  exports: [UsersService],
+})
+export class UsersModule {}
+
+
+
+# ANGULAR APP
+#
+## apps/plant-shop-angular-universal/src/app/app.config.server.ts
+
+import { mergeApplicationConfig, ApplicationConfig } from '@angular/core';
+import { provideServerRendering } from '@angular/ssr';
+import { appConfig } from './app.config';
+
+const serverConfig: ApplicationConfig = {
+  providers: [provideServerRendering()],
+};
+
+export const config = mergeApplicationConfig(appConfig, serverConfig);
 
 
 ## apps/plant-shop-angular-universal/src/app/app.config.ts
@@ -821,6 +1615,53 @@ export const appConfig: ApplicationConfig = {
   providers: [provideRouter(routes), provideHttpClient()],
 };
 
+
+## apps/plant-shop-angular-universal/src/app/app.routes.ts
+
+import { Route } from '@angular/router';
+
+export const appRoutes: Route[] = [];
+
+
+## apps/plant-shop-angular-universal/src/app/app.spec.ts
+
+import { TestBed } from '@angular/core/testing';
+import { App } from './app';
+import { NxWelcome } from './nx-welcome';
+
+describe('App', () => {
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [App, NxWelcome],
+    }).compileComponents();
+  });
+
+  it('should render title', () => {
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.querySelector('h1')?.textContent).toContain(
+      'Welcome plant-shop-angular-universal'
+    );
+  });
+});
+
+
+## apps/plant-shop-angular-universal/src/app/app.ts
+
+import { Component } from '@angular/core';
+import { RouterModule } from '@angular/router';
+import { NxWelcome } from './nx-welcome';
+
+@Component({
+  imports: [NxWelcome, RouterModule],
+  selector: 'app-root',
+  templateUrl: './app.html',
+  styleUrl: './app.css',
+})
+export class App {
+  protected title = 'plant-shop-angular-universal';
+}
 
 
 ## apps/plant-shop-angular-universal/src/app/nx-welcome.ts
@@ -1700,110 +2541,98 @@ export class NxWelcome {}
 
 
 
-## apps/plant-shop-angular-universal/src/app/app.config.server.ts
+# ANGULAR COMPONENTS
+#
+## apps/plant-shop-angular-universal/src/app/components/hello.spec.ts
 
-import { mergeApplicationConfig, ApplicationConfig } from '@angular/core';
-import { provideServerRendering } from '@angular/ssr';
-import { appConfig } from './app.config';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { Hello } from './hello';
 
-const serverConfig: ApplicationConfig = {
-  providers: [provideServerRendering()],
-};
+describe('Hello', () => {
+  let component: Hello;
+  let fixture: ComponentFixture<Hello>;
 
-export const config = mergeApplicationConfig(appConfig, serverConfig);
-
-
-
-## apps/plant-shop-angular-universal/src/app/app.routes.ts
-
-import { Route } from '@angular/router';
-
-export const appRoutes: Route[] = [];
-
-
-
-## apps/plant-shop-angular-universal/src/app/app.spec.ts
-
-import { TestBed } from '@angular/core/testing';
-import { App } from './app';
-import { NxWelcome } from './nx-welcome';
-
-describe('App', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [App, NxWelcome],
+      imports: [Hello],
     }).compileComponents();
+
+    fixture = TestBed.createComponent(Hello);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
   });
 
-  it('should render title', () => {
-    const fixture = TestBed.createComponent(App);
-    fixture.detectChanges();
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain(
-      'Welcome plant-shop-angular-universal'
-    );
+  it('should create', () => {
+    expect(component).toBeTruthy();
   });
 });
 
 
-
-## apps/plant-shop-angular-universal/src/app/app.ts
+## apps/plant-shop-angular-universal/src/app/components/hello.ts
 
 import { Component } from '@angular/core';
-import { RouterModule } from '@angular/router';
-import { NxWelcome } from './nx-welcome';
 
 @Component({
-  imports: [NxWelcome, RouterModule],
-  selector: 'app-root',
-  templateUrl: './app.html',
-  styleUrl: './app.css',
+  selector: 'app-hello',
+  imports: [],
+  templateUrl: './hello.html',
+  styleUrl: './hello.css',
 })
-export class App {
-  protected title = 'plant-shop-angular-universal';
+export class Hello {}
+
+
+
+# ANGULAR SERVICES
+#
+## apps/plant-shop-angular-universal/src/app/services/api.service.ts
+
+import { HttpClient } from '@angular/common/http';
+import { Injectable, inject } from '@angular/core';
+import { Observable } from 'rxjs';
+
+@Injectable({
+  providedIn: 'root',
+})
+export class ApiService {
+  private http = inject(HttpClient);
+  private apiUrl = '/'; // URL relative pour fonctionner avec SSR
+
+  // Méthode pour récupérer le message de bienvenue
+  getHello(): Observable<{ message: string }> {
+    return this.http.get<{ message: string }>(`${this.apiUrl}/hello`);
+  }
 }
 
 
+## apps/plant-shop-angular-universal/src/app/services/api.spec.ts
 
-## apps/plant-shop-angular-universal/src/main.server.ts
+import { TestBed } from '@angular/core/testing';
 
-import { bootstrapApplication } from '@angular/platform-browser';
-import { App } from './app/app';
-import { config } from './app/app.config.server';
+import { Api } from './';
 
-const bootstrap = () => bootstrapApplication(App, config);
+describe('Api', () => {
+  let service: Api;
 
-export default bootstrap;
+  beforeEach(() => {
+    TestBed.configureTestingModule({});
+    service = TestBed.inject(Api);
+  });
 
-
-
-## apps/plant-shop-angular-universal/src/main.ts
-
-import { bootstrapApplication } from '@angular/platform-browser';
-import { appConfig } from './app/app.config';
-import { App } from './app/app';
-
-bootstrapApplication(App, appConfig).catch((err) => console.error(err));
-
-
-
-## jest.config.ts
-
-import type { Config } from 'jest';
-import { getJestProjectsAsync } from '@nx/jest';
-
-export default async (): Promise<Config> => ({
-  projects: await getJestProjectsAsync(),
+  it('should be created', () => {
+    expect(service).toBeTruthy();
+  });
 });
 
 
+## apps/plant-shop-angular-universal/src/app/services/api.ts
 
-## vitest.workspace.ts
+import { Injectable } from '@angular/core';
 
-export default [
-  '**/vite.config.{mjs,js,ts,mts}',
-  '**/vitest.config.{mjs,js,ts,mts}',
-];
-
+@Injectable({
+  providedIn: 'root'
+})
+export class Api {
+  
+}
 
 

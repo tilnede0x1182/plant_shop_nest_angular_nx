@@ -23,6 +23,7 @@ export class PlantsController {
   /** GET /plants : liste toutes les plantes */
   @Get()
   list() {
+		console.log('[PLANTS] route', 'GET /plants');
     return this.plantsService.list();
   }
 
