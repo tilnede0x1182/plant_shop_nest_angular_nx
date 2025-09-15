@@ -1,12 +1,14 @@
 // # Importations
 import { Component } from '@angular/core';
 import { RouterModule } from '@angular/router';
+import { NavbarComponent } from './navbar/navbar.component';
 
-// # Composant racine (shell)
+// # Composant racine
 @Component({
   selector: 'app-root',
-  imports: [RouterModule],
+  standalone: true,
+  imports: [RouterModule, NavbarComponent],
   templateUrl: './app.html',
-  styleUrl: './app.css',
+  styleUrls: ['./app.css'],
 })
 export class App {}

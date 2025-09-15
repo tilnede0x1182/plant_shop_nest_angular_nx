@@ -21,7 +21,10 @@
             "input": "apps/plant-shop-angular-universal/public"
           }
         ],
-        "styles": ["apps/plant-shop-angular-universal/src/styles.css"]
+        "styles": [
+          "node_modules/bootstrap/dist/css/bootstrap.min.css",
+          "apps/plant-shop-angular-universal/src/styles.css"
+        ]
       },
       "configurations": {
         "production": {
