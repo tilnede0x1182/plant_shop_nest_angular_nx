@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateOrderDto, UpdateOrderDto } from './dto/order.dto';
+import { User } from '@prisma/client';
 
 /**
   Service métier des commandes, accès base via Prisma
@@ -16,8 +17,8 @@ export class OrdersService {
   constructor(private readonly prisma: PrismaService) {}
 
   /**
-	  Liste toutes les commandes (optionnel : inclure items/plantes)
-	*/
+    Liste toutes les commandes (optionnel : inclure items/plantes)
+  */
   async list() {
     return this.prisma.order.findMany({
       include: { orderItems: { include: { plant: true } } },
@@ -25,9 +26,16 @@ export class OrdersService {
   }
 
   /**
-	  Détail commande par id (inclut items/plantes)
-	  @id identifiant numérique commande
-	*/
+    findAll (alias de list)
+  */
+  async findAll() {
+    return this.list();
+  }
+
+  /**
+    Détail commande par id (inclut items/plantes)
+    @id identifiant numérique commande
+  */
   async one(id: number) {
     const order = await this.prisma.order.findUnique({
       where: { id },
@@ -38,15 +46,34 @@ export class OrdersService {
   }
 
   /**
-	  Création commande (vérifie stock, crée orderItems, maj stock, calcule total)
-	  @dto données commande
-	*/
-  async create(dto: CreateOrderDto) {
+    retourne une commande pour un utilisateur donné
+    @id identifiant de la commande
+    @user utilisateur connecté
+  */
+  async findOneForUser(id: number, user: User) {
+    if (user.admin) {
+      return this.one(id); // admin → accès global
+    }
+    const order = await this.prisma.order.findFirst({
+      where: { id, userId: user.id },
+      include: { orderItems: { include: { plant: true } } },
+    });
+    if (!order)
+      throw new NotFoundException('Commande non trouvée pour cet utilisateur');
+    return order;
+  }
+
+  /**
+    Création commande (corrigé pour attendre aussi l’utilisateur)
+    @dto données commande
+    @user utilisateur connecté
+  */
+  async create(dto: CreateOrderDto, user: User) {
     let total = 0;
-    const { userId, items } = dto;
+    const { items } = dto;
 
     const order = await this.prisma.order.create({
-      data: { userId, status: 'confirmed', totalPrice: 0 },
+      data: { userId: user.id, status: 'confirmed', totalPrice: 0 },
     });
 
     for (const item of items) {
@@ -75,18 +102,18 @@ export class OrdersService {
   }
 
   /**
-	  Mise à jour commande (statut, items)
-	  @id identifiant commande
-	  @dto données mises à jour
-	*/
+    Mise à jour commande (statut, items)
+    @id identifiant commande
+    @dto données mises à jour
+  */
   async update(id: number, dto: UpdateOrderDto) {
     return this.prisma.order.update({ where: { id }, data: dto });
   }
 
   /**
-	  Suppression commande (+ suppression items liés)
-	  @id identifiant commande
-	*/
+    Suppression commande (+ suppression items liés)
+    @id identifiant commande
+  */
   async remove(id: number) {
     await this.prisma.orderItem.deleteMany({ where: { orderId: id } });
     return this.prisma.order.delete({ where: { id } });

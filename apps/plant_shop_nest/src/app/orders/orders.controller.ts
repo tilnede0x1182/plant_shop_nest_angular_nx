@@ -7,46 +7,52 @@ import {
   Delete,
   Param,
   Body,
-  ParseIntPipe,
+  UseGuards,
+  Req,
 } from '@nestjs/common';
 import { OrdersService } from './orders.service';
-import { CreateOrderDto, UpdateOrderDto } from './dto/order.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
 
-/**
-  Contrôleur Commandes, routes REST CRUD
-  @constructor OrdersService service métier injecté
-*/
-@Controller('/orders')
+// # Contrôleur Orders
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Controller('orders')
 export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
 
-  /** GET /orders : liste toutes les commandes */
+  // ✅ Un admin voit toutes les commandes
+  @Roles('admin')
   @Get()
-  list() {
-    return this.ordersService.list();
+  findAll() {
+    return this.ordersService.findAll();
   }
 
-  /** GET /orders/:id : détail d'une commande */
+  // ✅ Un utilisateur voit seulement ses propres commandes
   @Get(':id')
-  one(@Param('id', ParseIntPipe) id: number) {
-    return this.ordersService.one(id);
+  findOne(@Param('id') id: string, @Req() req: any) {
+    const user = req.user;
+    return this.ordersService.findOneForUser(+id, user);
   }
 
-  /** POST /orders : création d'une commande */
+  // ✅ Tout utilisateur authentifié peut créer une commande
   @Post()
-  create(@Body() dto: CreateOrderDto) {
-    return this.ordersService.create(dto);
+  create(@Body() data: any, @Req() req: any) {
+    const user = req.user;
+    return this.ordersService.create(data, user);
   }
 
-  /** PATCH /orders/:id : maj d'une commande */
+  // ✅ Un admin peut mettre à jour une commande (ex. statut)
+  @Roles('admin')
   @Patch(':id')
-  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateOrderDto) {
-    return this.ordersService.update(id, dto);
+  update(@Param('id') id: string, @Body() data: any) {
+    return this.ordersService.update(+id, data);
   }
 
-  /** DELETE /orders/:id : suppression d'une commande */
+  // ✅ Un admin peut supprimer une commande
+  @Roles('admin')
   @Delete(':id')
-  remove(@Param('id', ParseIntPipe) id: number) {
-    return this.ordersService.remove(id);
+  remove(@Param('id') id: string) {
+    return this.ordersService.remove(+id);
   }
 }

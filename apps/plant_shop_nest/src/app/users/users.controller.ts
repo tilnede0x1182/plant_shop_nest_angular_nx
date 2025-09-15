@@ -7,46 +7,52 @@ import {
   Delete,
   Param,
   Body,
-  ParseIntPipe,
+  UseGuards,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { CreateUserDto, UpdateUserDto } from './dto/user.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
 
-/**
-  Contrôleur Utilisateurs, routes REST CRUD
-  @constructor UsersService service métier injecté
-*/
-@Controller('/users')
+// # Contrôleur Users
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  /** GET /users : liste tous les utilisateurs */
+  // ✅ Réservé aux admins
+  @Roles('admin')
   @Get()
-  list() {
-    return this.usersService.list();
+  findAll() {
+    return this.usersService.findAll();
   }
 
-  /** GET /users/:id : détail d'un utilisateur */
+  // ✅ Réservé aux admins
+  @Roles('admin')
   @Get(':id')
-  one(@Param('id', ParseIntPipe) id: number) {
-    return this.usersService.one(id);
+  findOne(@Param('id') id: string) {
+    return this.usersService.findOne(+id);
   }
 
-  /** POST /users : création d'un utilisateur */
+  // ✅ Accessible (register se fait déjà via AuthController),
+  // mais un admin peut créer un utilisateur manuellement
+  @Roles('admin')
   @Post()
-  create(@Body() dto: CreateUserDto) {
-    return this.usersService.create(dto);
+  create(@Body() data: any) {
+    return this.usersService.create(data);
   }
 
-  /** PATCH /users/:id : maj d'un utilisateur */
+  // ✅ Réservé aux admins
+  @Roles('admin')
   @Patch(':id')
-  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateUserDto) {
-    return this.usersService.update(id, dto);
+  update(@Param('id') id: string, @Body() data: any) {
+    return this.usersService.update(+id, data);
   }
 
-  /** DELETE /users/:id : suppression d'un utilisateur */
+  // ✅ Réservé aux admins
+  @Roles('admin')
   @Delete(':id')
-  remove(@Param('id', ParseIntPipe) id: number) {
-    return this.usersService.remove(id);
+  remove(@Param('id') id: string) {
+    return this.usersService.remove(+id);
   }
 }
