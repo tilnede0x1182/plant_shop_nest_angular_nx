@@ -12,9 +12,27 @@
 				<li class="nav-item">
 					<a class="nav-link" routerLink="/cart">Panier</a>
 				</li>
-				<li class="nav-item">
-					<a class="nav-link" routerLink="/login">Connexion</a>
-				</li>
+			</ul>
+
+			<ul class="navbar-nav">
+				<ng-container *ngIf="!estConnecte; else loggedIn">
+					<li class="nav-item">
+						<a class="nav-link" routerLink="/login">Connexion</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link" routerLink="/register">Inscription</a>
+					</li>
+				</ng-container>
+				<ng-template #loggedIn>
+					<li class="nav-item">
+						<a class="nav-link" routerLink="/profile">Profil</a>
+					</li>
+					<li class="nav-item">
+						<button class="btn btn-sm btn-outline-light ms-2" (click)="logout()">
+							Déconnexion
+						</button>
+					</li>
+				</ng-template>
 			</ul>
 		</div>
 	</div>

@@ -1,10 +1,9 @@
 // # Importations
-import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
-// # Données
-export type Identifiant = number;
+// # Types simples
 export type Plante = {
   id: number;
   name: string;
@@ -12,38 +11,67 @@ export type Plante = {
   stock: number;
   description?: string;
 };
-export type CommandeItem = { plantId: number; quantity: number };
-export type CommandePayload = { userId: number; items: CommandeItem[] };
 export type Utilisateur = {
   id: number;
   email: string;
-  name?: string;
-  admin?: boolean;
+  name: string;
+  admin: boolean;
+};
+export type Commande = {
+  id: number;
+  userId: number;
+  status: string;
+  items: any[];
 };
 
-// # Service principal
+// # Service API
 @Injectable({ providedIn: 'root' })
 export class ApiService {
   private http = inject(HttpClient);
-  private base = '/api';
+  private base = '/api'; // proxy vers backend Nest
 
-  /** GET /api/plants */
+  /* ---------- Plantes ---------- */
   listerPlantes(): Observable<Plante[]> {
     return this.http.get<Plante[]>(`${this.base}/plants`);
   }
-
-  /** GET /api/plants/:id */
-  unePlante(id: Identifiant): Observable<Plante> {
+  unePlante(id: number): Observable<Plante> {
     return this.http.get<Plante>(`${this.base}/plants/${id}`);
   }
-
-  /** POST /api/orders */
-  creerCommande(payload: CommandePayload): Observable<{ id: number }> {
-    return this.http.post<{ id: number }>(`${this.base}/orders`, payload);
+  creerPlante(data: Partial<Plante>): Observable<Plante> {
+    return this.http.post<Plante>(`${this.base}/plants`, data);
+  }
+  majPlante(id: number, data: Partial<Plante>): Observable<Plante> {
+    return this.http.patch<Plante>(`${this.base}/plants/${id}`, data);
+  }
+  supprimerPlante(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.base}/plants/${id}`);
   }
 
-  /** GET /api/orders/:id */
-  uneCommande(id: Identifiant): Observable<any> {
-    return this.http.get<any>(`${this.base}/orders/${id}`);
+  /* ---------- Utilisateurs ---------- */
+  listerUtilisateurs(): Observable<Utilisateur[]> {
+    return this.http.get<Utilisateur[]>(`${this.base}/users`);
+  }
+  unUtilisateur(id: number): Observable<Utilisateur> {
+    return this.http.get<Utilisateur>(`${this.base}/users/${id}`);
+  }
+  supprimerUtilisateur(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.base}/users/${id}`);
+  }
+
+  /* ---------- Commandes ---------- */
+  listerCommandes(): Observable<Commande[]> {
+    return this.http.get<Commande[]>(`${this.base}/orders`);
+  }
+  uneCommande(id: number): Observable<Commande> {
+    return this.http.get<Commande>(`${this.base}/orders/${id}`);
+  }
+  creerCommande(data: any): Observable<Commande> {
+    return this.http.post<Commande>(`${this.base}/orders`, data);
+  }
+  majCommande(id: number, data: any): Observable<Commande> {
+    return this.http.patch<Commande>(`${this.base}/orders/${id}`, data);
+  }
+  supprimerCommande(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.base}/orders/${id}`);
   }
 }
