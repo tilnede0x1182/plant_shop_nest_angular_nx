@@ -1,33 +1,100 @@
 // # Importations
 import { Route } from '@angular/router';
+import { AuthGuard } from './auth/auth.guard';
 
-// # Routes principales (standalone)
 export const appRoutes: Route[] = [
+  // 🌿 Produits
   {
-    path: '',
+    path: 'plants',
     loadComponent: () =>
-      import('./components/plants-list.component').then(
+      import('./plants/plants-list/plants-list.component').then(
         (m) => m.PlantsListComponent
       ),
   },
   {
     path: 'plants/:id',
     loadComponent: () =>
-      import('./components/plant-detail.component').then(
+      import('./plants/plant-detail/plant-detail.component').then(
         (m) => m.PlantDetailComponent
       ),
   },
   {
+    path: 'plants/new',
+    loadComponent: () =>
+      import('./plants/plant-form/plant-form.component').then(
+        (m) => m.PlantFormComponent
+      ),
+    canActivate: [AuthGuard],
+  },
+
+  // 👤 Auth
+  {
+    path: 'login',
+    loadComponent: () =>
+      import('./auth/login/login.component').then((m) => m.LoginComponent),
+  },
+  {
+    path: 'register',
+    loadComponent: () =>
+      import('./auth/register/register.component').then(
+        (m) => m.RegisterComponent
+      ),
+  },
+
+  // 🛒 Panier
+  {
     path: 'cart',
     loadComponent: () =>
-      import('./components/cart.component').then((m) => m.CartComponent),
+      import('./cart/cart/cart.component').then((m) => m.CartComponent),
   },
+
+  // 📦 Commandes
   {
     path: 'orders/new',
     loadComponent: () =>
-      import('./components/order-new.component').then(
+      import('./orders/order-new/order-new.component').then(
         (m) => m.OrderNewComponent
       ),
+    canActivate: [AuthGuard],
   },
-  { path: '**', redirectTo: '' },
+  {
+    path: 'orders/:id',
+    loadComponent: () =>
+      import('./orders/order-detail/order-detail.component').then(
+        (m) => m.OrderDetailComponent
+      ),
+    canActivate: [AuthGuard],
+  },
+  {
+    path: 'orders',
+    loadComponent: () =>
+      import('./orders/order-list/order-list.component').then(
+        (m) => m.OrderListComponent
+      ),
+    canActivate: [AuthGuard],
+  },
+
+  // ⚙️ Admin
+  {
+    path: 'admin/users',
+    loadComponent: () =>
+      import('./admin/users-list/users-list.component').then(
+        (m) => m.UsersListComponent
+      ),
+    canActivate: [AuthGuard],
+  },
+  {
+    path: 'admin/dashboard',
+    loadComponent: () =>
+      import('./admin/dashboard/dashboard.component').then(
+        (m) => m.DashboardComponent
+      ),
+    canActivate: [AuthGuard],
+  },
+
+  // Route par défaut
+  { path: '', redirectTo: '/plants', pathMatch: 'full' },
+
+  // 404
+  { path: '**', redirectTo: '/plants' },
 ];

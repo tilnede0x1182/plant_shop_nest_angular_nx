@@ -1,14 +1,7 @@
-<!-- # Layout minimal -->
-<header class="container">
-	<h1>🌿 PlantShop</h1>
-	<nav>
-		<a routerLink="/">Plantes</a> |
-		<a routerLink="/cart">Panier</a> |
-		<a routerLink="/orders/new">Commander</a>
-	</nav>
-	<hr />
-</header>
+<!-- Navbar -->
+<app-navbar></app-navbar>
 
-<main class="container">
-	<router-outlet />
+<!-- Contenu principal -->
+<main class="container mt-4">
+	<router-outlet></router-outlet>
 </main>

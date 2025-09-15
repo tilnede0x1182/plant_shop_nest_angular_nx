@@ -1,0 +1,25 @@
+<div class="container mt-4">
+	<h2>🌿 Plantes disponibles</h2>
+	<table class="table table-striped table-bordered mt-3">
+		<thead class="table-dark">
+			<tr>
+				<th>Nom</th>
+				<th>Prix</th>
+				<th>Stock</th>
+				<th>Détails</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr *ngFor="let plante of plantes">
+				<td>{{ plante.name }}</td>
+				<td>{{ plante.price }} €</td>
+				<td>{{ plante.stock }}</td>
+				<td>
+					<a class="btn btn-sm btn-primary" [routerLink]="['/plants', plante.id]">
+						Voir
+					</a>
+				</td>
+			</tr>
+		</tbody>
+	</table>
+</div>

@@ -1,0 +1,14 @@
+<div class="container mt-4">
+	<h2>📝 Nouvelle commande</h2>
+
+	<div class="alert alert-info" *ngIf="total === 0">
+		Votre panier est vide. <a routerLink="/plants">Voir les plantes</a>
+	</div>
+
+	<div *ngIf="total > 0">
+		<p>Total de votre panier : <strong>{{ total }} €</strong></p>
+		<button class="btn btn-success" (click)="passerCommande()">Valider la commande</button>
+	</div>
+
+	<p class="mt-3 text-info">{{ message }}</p>
+</div>

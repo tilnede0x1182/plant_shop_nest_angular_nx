@@ -20870,7 +20870,7 @@ export class UsersController {
 // # Importations
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
-import * as bcrypt from 'bcrypt';
+import * as bcrypt from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';
 
 // # Service d'authentification
@@ -20979,13 +20979,16 @@ export class OrderItemsService {
     @user utilisateur connecté
   */
   async create(dto: CreateOrderItemDto, user: User) {
+    // Approche 2 : Utiliser uniquement l'approche relationnelle
     return this.prisma.orderItem.create({
       data: {
-        ...dto,
+        quantity: dto.quantity,
+        plant: {
+          connect: { id: dto.plantId },
+        },
         order: {
           connect: { id: dto.orderId },
         },
-        userId: user.id,
       },
     });
   }
@@ -21064,6 +21067,9 @@ export class OrdersService {
     @user utilisateur connecté
   */
   async findOneForUser(id: number, user: User) {
+    if (user.admin) {
+      return this.one(id); // admin → accès global
+    }
     const order = await this.prisma.order.findFirst({
       where: { id, userId: user.id },
       include: { orderItems: { include: { plant: true } } },
