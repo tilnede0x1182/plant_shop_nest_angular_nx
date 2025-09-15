@@ -204,6 +204,7 @@ async function main() {
 
     await testPlants(adminToken);
     await testUsers(adminToken);
+    await testUsers(adminToken);
     await testOrders(adminToken, userToken);
     await testAuthRoles(adminToken, userToken);
 

@@ -15,38 +15,38 @@ import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
 
 // # Contrôleur Plants
-@UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('plants')
 export class PlantsController {
   constructor(private readonly plantsService: PlantsService) {}
 
-  // ✅ Accessible à tout utilisateur connecté
+  // Public
   @Get()
   findAll() {
     return this.plantsService.findAll();
   }
 
-  // ✅ Accessible à tout utilisateur connecté
+  // Public
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.plantsService.findOne(+id);
   }
 
-  // ✅ Réservé aux admins
+  // Admin
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
   @Post()
   create(@Body() data: any) {
     return this.plantsService.create(data);
   }
 
-  // ✅ Réservé aux admins
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
   @Patch(':id')
   update(@Param('id') id: string, @Body() data: any) {
     return this.plantsService.update(+id, data);
   }
 
-  // ✅ Réservé aux admins
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
   @Delete(':id')
   remove(@Param('id') id: string) {
