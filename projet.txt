@@ -18,10 +18,14 @@
 │   │   │   │   ├── app.spec.ts
 │   │   │   │   ├── app.ts
 │   │   │   │   ├── components
+│   │   │   │   │   ├── cart.component.ts
 │   │   │   │   │   ├── hello.css
 │   │   │   │   │   ├── hello.html
 │   │   │   │   │   ├── hello.spec.ts
-│   │   │   │   │   └── hello.ts
+│   │   │   │   │   ├── hello.ts
+│   │   │   │   │   ├── order-new.component.ts
+│   │   │   │   │   ├── plant-detail.component.ts
+│   │   │   │   │   └── plants-list.component.ts
 │   │   │   │   ├── nx-welcome.ts
 │   │   │   │   └── services
 │   │   │   │       ├── api.service.ts
@@ -52,6 +56,17 @@
 │       │   │   ├── app.module.ts
 │       │   │   ├── app.service.spec.ts
 │       │   │   ├── app.service.ts
+│       │   │   ├── auth
+│       │   │   │   ├── auth.controller.ts
+│       │   │   │   ├── auth.module.ts
+│       │   │   │   ├── auth.service.ts
+│       │   │   │   ├── guards
+│       │   │   │   │   └── jwt-auth.guard.ts
+│       │   │   │   ├── jwt.strategy.ts
+│       │   │   │   ├── local.strategy.ts
+│       │   │   │   ├── roles.decorator.ts
+│       │   │   │   ├── roles.guard.ts
+│       │   │   │   └── strategies
 │       │   │   ├── order-items
 │       │   │   │   ├── dto
 │       │   │   │   │   └── order-item.dto.ts
@@ -114,7 +129,7 @@
 ├── users.txt
 └── vitest.workspace.ts
 
-26 directories, 86 files
+29 directories, 98 files
 
 # CONFIGURATION
 #
@@ -127,6 +142,8 @@
   "scripts": {
     "test-e2e": "SERVE_SSR=false PORT=4100 nx serve plant_shop_nest",
     "dev": "nx run plant-shop-angular-universal:serve-ssr --configuration=development",
+    "dev-back": "SERVE_SSR=false PORT=4100 nx serve plant_shop_nest",
+    "dev-front": "nx serve plant-shop-angular-universal --port=8300 --proxy-config proxy.conf.json",
     "build-frontend": "nx build plant-shop-angular-universal --configuration=production",
     "build-backend": "nx build plant_shop_nest --configuration=production",
     "build": "npm run build-frontend && npm run build-backend",
@@ -144,6 +161,8 @@
     "@angular/ssr": "~20.2.0",
     "@nestjs/common": "^11.0.0",
     "@nestjs/core": "^11.0.0",
+    "@nestjs/jwt": "^11.0.0",
+    "@nestjs/passport": "^11.0.5",
     "@nestjs/platform-express": "^11.0.0",
     "@prisma/client": "^6.16.1",
     "axios": "^1.6.0",
@@ -151,6 +170,8 @@
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.2",
     "express": "^4.21.2",
+    "passport-jwt": "^4.0.1",
+    "passport-local": "^1.0.0",
     "reflect-metadata": "^0.1.13",
     "rxjs": "~7.8.0",
     "zone.js": "~0.15.0"
@@ -409,6 +430,12 @@ importers:
       '@nestjs/core':
         specifier: ^11.0.0
         version: 11.1.6(@nestjs/common@11.1.6(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.1.14)(rxjs@7.8.2))(@nestjs/platform-express@11.1.6)(reflect-metadata@0.1.14)(rxjs@7.8.2)
+      '@nestjs/jwt':
+        specifier: ^11.0.0
+        version: 11.0.0(@nestjs/common@11.1.6(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.1.14)(rxjs@7.8.2))
+      '@nestjs/passport':
+        specifier: ^11.0.5
+        version: 11.0.5(@nestjs/common@11.1.6(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.1.14)(rxjs@7.8.2))(passport@0.7.0)
       '@nestjs/platform-express':
         specifier: ^11.0.0
         version: 11.1.6(@nestjs/common@11.1.6(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.1.14)(rxjs@7.8.2))(@nestjs/core@11.1.6)
@@ -430,6 +457,12 @@ importers:
       express:
         specifier: ^4.21.2
         version: 4.21.2
+      passport-jwt:
+        specifier: ^4.0.1
+        version: 4.0.1
+      passport-local:
+        specifier: ^1.0.0
+        version: 1.0.0
       reflect-metadata:
         specifier: ^0.1.13
         version: 0.1.14
@@ -2659,6 +2692,17 @@ packages:
       '@nestjs/websockets':
         optional: true
 
+  '@nestjs/jwt@11.0.0':
+    resolution: {integrity: sha512-v7YRsW3Xi8HNTsO+jeHSEEqelX37TVWgwt+BcxtkG/OfXJEOs6GZdbdza200d6KqId1pJQZ6UPj1F0M6E+mxaA==}
+    peerDependencies:
+      '@nestjs/common': ^8.0.0 || ^9.0.0 || ^10.0.0 || ^11.0.0
+
+  '@nestjs/passport@11.0.5':
+    resolution: {integrity: sha512-ulQX6mbjlws92PIM15Naes4F4p2JoxGnIJuUsdXQPT+Oo2sqQmENEZXM7eYuimocfHnKlcfZOuyzbA33LwUlOQ==}
+    peerDependencies:
+      '@nestjs/common': ^10.0.0 || ^11.0.0
+      passport: ^0.5.0 || ^0.6.0 || ^0.7.0
+
   '@nestjs/platform-express@11.1.6':
     resolution: {integrity: sha512-HErwPmKnk+loTq8qzu1up+k7FC6Kqa8x6lJ4cDw77KnTxLzsCaPt+jBvOq6UfICmfqcqCCf3dKXg+aObQp+kIQ==}
     peerDependencies:
@@ -3543,6 +3587,9 @@ packages:
   '@types/json-schema@7.0.15':
     resolution: {integrity: sha512-5+fP8P8MFNC+AyZCDxrB2pkZFPGzqQWUzpSeuuVLvm8VMcorNYavBqoFcxK8bQz4Qsbn4oUEEem4wDLfcysGHA==}
 
+  '@types/jsonwebtoken@9.0.7':
+    resolution: {integrity: sha512-ugo316mmTYBl2g81zDFnZ7cfxlut3o+/EQdaP7J8QN2kY6lJ22hmQYCK5EHcJHbrW+dkCGSCPgbG8JtYj6qSrg==}
+
   '@types/mime@1.3.5':
     resolution: {integrity: sha512-/pyBZWSLD2n0dcHE3hq8s8ZvcETHtEuF+3E7XVt0Ig2nvsVQXdghHVcEkIWjy9A0wKfTn97a/PSDYohKIlnP/w==}
 
@@ -4264,6 +4311,9 @@ packages:
   buffer-builder@0.2.0:
     resolution: {integrity: sha512-7VPMEPuYznPSoR21NE1zvd2Xna6c/CloiZCfcMXR1Jny6PjX0N4Nsa38zcBFo/FMK+BlA+FLKbJCQ0i2yxp+Xg==}
 
+  buffer-equal-constant-time@1.0.1:
+    resolution: {integrity: sha512-zRpUiDwd/xk6ADqPMATG8vc9VPrkck7T07OIx0gnjmJAnHnTVXNQG3vfvWNuiZIkwu9KrKdA1iJKfsfTVxE6NA==}
+
   buffer-from@1.1.2:
     resolution: {integrity: sha512-E+XQCRwSbaaiChtv6k6Dwgc+bx+Bs6vuKJHHl5kox/BaKbhiXzqQOwK4cO22yElGp2OCmjwVhT3HmxgyPGnJfQ==}
 
@@ -4920,6 +4970,9 @@ packages:
   eazy-logger@4.1.0:
     resolution: {integrity: sha512-+mn7lRm+Zf1UT/YaH8WXtpU6PIV2iOjzP6jgKoiaq/VNrjYKp+OHZGe2znaLgDeFkw8cL9ffuaUm+nNnzcYyGw==}
     engines: {node: '>= 0.8.0'}
+
+  ecdsa-sig-formatter@1.0.11:
+    resolution: {integrity: sha512-nagl3RYrbNv6kQkeJIpt6NJZy8twLB/2vtz6yN9Z4vRKHN4/QZJIEbqohALSgwKdnksuY3k5Addp5lg8sVoVcQ==}
 
   ee-first@1.1.1:
     resolution: {integrity: sha512-WMwm9LhRUo+WUaRN+vRuETqG89IgZphVSNkdFgeb6sS/E4OrDIN7t48CAewSHXc6C8lefD8KKfr5vY61brQlow==}
@@ -6173,6 +6226,16 @@ packages:
     resolution: {integrity: sha512-POQXvpdL69+CluYsillJ7SUhKvytYjW9vG/GKpnf+xP8UWgYEM/RaMzHHofbALDiKbbP1W8UEYmgGl39WkPZsg==}
     engines: {'0': node >= 0.2.0}
 
+  jsonwebtoken@9.0.2:
+    resolution: {integrity: sha512-PRp66vJ865SSqOlgqS8hujT5U4AOgMfhrwYIuIhfKaoSCZcirrmASQr8CX7cUg+RMih+hgznrjp99o+W4pJLHQ==}
+    engines: {node: '>=12', npm: '>=6'}
+
+  jwa@1.4.2:
+    resolution: {integrity: sha512-eeH5JO+21J78qMvTIDdBXidBd6nG2kZjg5Ohz/1fpa28Z4CcsWUzJ1ZZyFq/3z3N17aZy+ZuBoHljASbL1WfOw==}
+
+  jws@3.2.2:
+    resolution: {integrity: sha512-YHlZCB6lMTllWDtSPHz/ZXTsi8S00usEV6v1tjq8tOUZzw7DpSDWVXjXDre6ed1w/pd495ODpHZYSdkRTsa0HA==}
+
   karma-source-map-support@1.4.0:
     resolution: {integrity: sha512-RsBECncGO17KAoJCYXjv+ckIz+Ii9NCi+9enk+rq6XC81ezYkb4/RHE6CTXdA7IOJqoF3wcaLfVG0CPmE5ca6A==}
 
@@ -6310,14 +6373,35 @@ packages:
   lodash.debounce@4.0.8:
     resolution: {integrity: sha512-FT1yDzDYEoYWhnSGnpE/4Kj1fLZkDFyqRb7fNt6FdYOSxlUWAtp42Eh6Wb0rGIv/m9Bgo7x4GhQbm5Ys4SG5ow==}
 
+  lodash.includes@4.3.0:
+    resolution: {integrity: sha512-W3Bx6mdkRTGtlJISOvVD/lbqjTlPPUDTMnlXZFnVwi9NKJ6tiAk6LVdlhZMm17VZisqhKcgzpO5Wz91PCt5b0w==}
+
+  lodash.isboolean@3.0.3:
+    resolution: {integrity: sha512-Bz5mupy2SVbPHURB98VAcw+aHh4vRV5IPNhILUCsOzRmsTmSQ17jIuqopAentWoehktxGd9e/hbIXq980/1QJg==}
+
   lodash.isfinite@3.3.2:
     resolution: {integrity: sha512-7FGG40uhC8Mm633uKW1r58aElFlBlxCrg9JfSi3P6aYiWmfiWF0PgMd86ZUsxE5GwWPdHoS2+48bwTh2VPkIQA==}
+
+  lodash.isinteger@4.0.4:
+    resolution: {integrity: sha512-DBwtEWN2caHQ9/imiNeEA5ys1JoRtRfY3d7V9wkqtbycnAmTvRRmbHKDV4a0EYc678/dia0jrte4tjYwVBaZUA==}
+
+  lodash.isnumber@3.0.3:
+    resolution: {integrity: sha512-QYqzpfwO3/CWf3XP+Z+tkQsfaLL/EnUlXWVkIk5FUPc4sBdTehEqZONuyRt2P67PXAk+NXmTBcc97zw9t1FQrw==}
+
+  lodash.isplainobject@4.0.6:
+    resolution: {integrity: sha512-oSXzaWypCMHkPC3NvBEaPHf0KsA5mvPrOPgQWDsbg8n7orZ290M0BmC/jgRZ4vcJ6DTAhjrsSYgdsW/F+MFOBA==}
+
+  lodash.isstring@4.0.1:
+    resolution: {integrity: sha512-0wJxfxH1wgO3GrbuP+dTTk7op+6L41QCXbGINEmD+ny/G/eCqGzxyCsh7159S+mgDDcoarnBw6PC1PS5+wUGgw==}
 
   lodash.memoize@4.1.2:
     resolution: {integrity: sha512-t7j+NzmgnQzTAYXcsHYLgimltOV1MXHtlOWf6GjL9Kj8GK5FInw5JotxvbOs+IvV1/Dzo04/fCGfLVs7aXb4Ag==}
 
   lodash.merge@4.6.2:
     resolution: {integrity: sha512-0KpjqXRVvrYyCsX1swR/XTK0va6VQkQM6MNo7PqW77ByjAhoARA8EfrP1N4+KlKj8YS0ZUCtRT/YUuhyYDujIQ==}
+
+  lodash.once@4.1.1:
+    resolution: {integrity: sha512-Sb487aTOCr9drQVL8pIxOzVhafOjZN9UU54hiN8PU3uAiSV7lx1yYNpbNmex2PK6dSJoNTSJUUswT651yww3Mg==}
 
   lodash.uniq@4.5.0:
     resolution: {integrity: sha512-xfBaXQd9ryd9dlSDvnvI0lvxfLJlYAZzXomUYzLKtUeOQvOP5piqAWuGtrhWeqaXK9hhoM/iyJc5AV+XfsX3HQ==}
@@ -6895,6 +6979,21 @@ packages:
     resolution: {integrity: sha512-CiyeOxFT/JZyN5m0z9PfXw4SCBJ6Sygz1Dpl0wqjlhDEGGBP1GnsUVEL0p63hoG1fcj3fHynXi9NYO4nWOL+qQ==}
     engines: {node: '>= 0.8'}
 
+  passport-jwt@4.0.1:
+    resolution: {integrity: sha512-UCKMDYhNuGOBE9/9Ycuoyh7vP6jpeTp/+sfMJl7nLff/t6dps+iaeE0hhNkKN8/HZHcJ7lCdOyDxHdDoxoSvdQ==}
+
+  passport-local@1.0.0:
+    resolution: {integrity: sha512-9wCE6qKznvf9mQYYbgJ3sVOHmCWoUNMVFoZzNoznmISbhnNNPhN9xfY3sLmScHMetEJeoY7CXwfhCe7argfQow==}
+    engines: {node: '>= 0.4.0'}
+
+  passport-strategy@1.0.0:
+    resolution: {integrity: sha512-CB97UUvDKJde2V0KDWWB3lyf6PC3FaZP7YxZ2G8OAtn9p4HI9j9JLP9qjOGZFvyl8uwNT8qM+hGnz/n16NI7oA==}
+    engines: {node: '>= 0.4.0'}
+
+  passport@0.7.0:
+    resolution: {integrity: sha512-cPLl+qZpSc+ireUvt+IzqbED1cHHkDoVYMo30jbJIdOOjQ1MQYZBPiNvmi8UM6lJuOpTPXJGZQk0DtC4y61MYQ==}
+    engines: {node: '>= 0.4.0'}
+
   path-browserify@1.0.1:
     resolution: {integrity: sha512-b7uo2UCUOYZcnF/3ID0lulOJi/bafxa1xPe7ZPsammBSpjSWQkjNxlt635YGS2MiR9GjvuXCtz2emr3jbsz98g==}
 
@@ -6945,6 +7044,9 @@ packages:
   pathval@2.0.1:
     resolution: {integrity: sha512-//nshmD55c46FuFw26xV/xFAaB5HF9Xdap7HJBBnrKdAd6/GxDBaNA1870O79+9ueg61cZLSVc+OaFlfmObYVQ==}
     engines: {node: '>= 14.16'}
+
+  pause@0.0.1:
+    resolution: {integrity: sha512-KG8UEiEVkR3wGEb4m5yZkVCzigAD+cVEJck2CzYZO37ZGJfctvVptVO192MwrtPhzONn6go8ylnOdMhKqi4nfg==}
 
   perfect-debounce@1.0.0:
     resolution: {integrity: sha512-xCy9V055GLEqoFaHoC1SoLIaLmWctgCUaBaWxDZ7/Zx4CTyX7cJQLJOok/orfjZAh9kEYpjJa4d0KcJmCbctZA==}
@@ -11837,6 +11939,17 @@ snapshots:
     optionalDependencies:
       '@nestjs/platform-express': 11.1.6(@nestjs/common@11.1.6(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.1.14)(rxjs@7.8.2))(@nestjs/core@11.1.6)
 
+  '@nestjs/jwt@11.0.0(@nestjs/common@11.1.6(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.1.14)(rxjs@7.8.2))':
+    dependencies:
+      '@nestjs/common': 11.1.6(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.1.14)(rxjs@7.8.2)
+      '@types/jsonwebtoken': 9.0.7
+      jsonwebtoken: 9.0.2
+
+  '@nestjs/passport@11.0.5(@nestjs/common@11.1.6(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.1.14)(rxjs@7.8.2))(passport@0.7.0)':
+    dependencies:
+      '@nestjs/common': 11.1.6(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.1.14)(rxjs@7.8.2)
+      passport: 0.7.0
+
   '@nestjs/platform-express@11.1.6(@nestjs/common@11.1.6(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.1.14)(rxjs@7.8.2))(@nestjs/core@11.1.6)':
     dependencies:
       '@nestjs/common': 11.1.6(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.1.14)(rxjs@7.8.2)
@@ -13053,6 +13166,10 @@ snapshots:
 
   '@types/json-schema@7.0.15': {}
 
+  '@types/jsonwebtoken@9.0.7':
+    dependencies:
+      '@types/node': 20.19.9
+
   '@types/mime@1.3.5': {}
 
   '@types/node-forge@1.3.14':
@@ -13950,6 +14067,8 @@ snapshots:
 
   buffer-builder@0.2.0: {}
 
+  buffer-equal-constant-time@1.0.1: {}
+
   buffer-from@1.1.2: {}
 
   buffer@5.7.1:
@@ -14581,6 +14700,10 @@ snapshots:
   eazy-logger@4.1.0:
     dependencies:
       chalk: 4.1.2
+
+  ecdsa-sig-formatter@1.0.11:
+    dependencies:
+      safe-buffer: 5.2.1
 
   ee-first@1.1.1: {}
 
@@ -16174,6 +16297,30 @@ snapshots:
 
   jsonparse@1.3.1: {}
 
+  jsonwebtoken@9.0.2:
+    dependencies:
+      jws: 3.2.2
+      lodash.includes: 4.3.0
+      lodash.isboolean: 3.0.3
+      lodash.isinteger: 4.0.4
+      lodash.isnumber: 3.0.3
+      lodash.isplainobject: 4.0.6
+      lodash.isstring: 4.0.1
+      lodash.once: 4.1.1
+      ms: 2.1.3
+      semver: 7.7.2
+
+  jwa@1.4.2:
+    dependencies:
+      buffer-equal-constant-time: 1.0.1
+      ecdsa-sig-formatter: 1.0.11
+      safe-buffer: 5.2.1
+
+  jws@3.2.2:
+    dependencies:
+      jwa: 1.4.2
+      safe-buffer: 5.2.1
+
   karma-source-map-support@1.4.0:
     dependencies:
       source-map-support: 0.5.21
@@ -16346,11 +16493,25 @@ snapshots:
 
   lodash.debounce@4.0.8: {}
 
+  lodash.includes@4.3.0: {}
+
+  lodash.isboolean@3.0.3: {}
+
   lodash.isfinite@3.3.2: {}
+
+  lodash.isinteger@4.0.4: {}
+
+  lodash.isnumber@3.0.3: {}
+
+  lodash.isplainobject@4.0.6: {}
+
+  lodash.isstring@4.0.1: {}
 
   lodash.memoize@4.1.2: {}
 
   lodash.merge@4.6.2: {}
+
+  lodash.once@4.1.1: {}
 
   lodash.uniq@4.5.0: {}
 
@@ -17003,6 +17164,23 @@ snapshots:
 
   parseurl@1.3.3: {}
 
+  passport-jwt@4.0.1:
+    dependencies:
+      jsonwebtoken: 9.0.2
+      passport-strategy: 1.0.0
+
+  passport-local@1.0.0:
+    dependencies:
+      passport-strategy: 1.0.0
+
+  passport-strategy@1.0.0: {}
+
+  passport@0.7.0:
+    dependencies:
+      passport-strategy: 1.0.0
+      pause: 0.0.1
+      utils-merge: 1.0.1
+
   path-browserify@1.0.1: {}
 
   path-exists@4.0.0: {}
@@ -17036,6 +17214,8 @@ snapshots:
   pathe@2.0.3: {}
 
   pathval@2.0.1: {}
+
+  pause@0.0.1: {}
 
   perfect-debounce@1.0.0: {}
 
@@ -20190,6 +20370,7 @@ export class AppController {
 
 ## apps/plant_shop_nest/src/app/app.module.ts
 
+// # Importations
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -20199,7 +20380,9 @@ import { UsersModule } from './users/users.module';
 import { PlantsModule } from './plants/plants.module';
 import { OrdersModule } from './orders/orders.module';
 import { OrderItemsModule } from './order-items/order-items.module';
+import { AuthModule } from './auth/auth.module';
 
+// # Module principal
 @Module({
   imports: [
     ...(process.env.SERVE_SSR === 'true' ? [AngularModule] : []),
@@ -20208,6 +20391,7 @@ import { OrderItemsModule } from './order-items/order-items.module';
     PlantsModule,
     OrdersModule,
     OrderItemsModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],
@@ -20353,7 +20537,7 @@ import {
 // # Données (DTOs)
 export class CreateUserDto {
   @IsEmail() email!: string;
-  @IsString() @IsNotEmpty() name!: string;
+  @IsString() @IsNotEmpty() name?: string;
   @IsString() @IsNotEmpty() password!: string;
   @IsBoolean() @IsOptional() admin?: boolean;
 }
@@ -20403,6 +20587,36 @@ export class AngularController {
 }
 
 
+## apps/plant_shop_nest/src/app/auth/auth.controller.ts
+
+// # Importations
+import { Controller, Post, Body } from '@nestjs/common';
+import { AuthService } from './auth.service';
+import { UsersService } from '../users/users.service';
+
+// # Contrôleur d'authentification
+@Controller('auth')
+export class AuthController {
+  constructor(
+    private readonly authService: AuthService,
+    private readonly usersService: UsersService
+  ) {}
+
+  @Post('login')
+  async login(@Body() body: { email: string; password: string }) {
+    const user = await this.authService.validateUser(body.email, body.password);
+    return this.authService.login(user);
+  }
+
+  @Post('register')
+  async register(
+    @Body() body: { email: string; name?: string; password: string }
+  ) {
+    return this.usersService.create(body);
+  }
+}
+
+
 ## apps/plant_shop_nest/src/app/order-items/order-items.controller.ts
 
 // # Importations
@@ -20414,50 +20628,53 @@ import {
   Delete,
   Param,
   Body,
-  ParseIntPipe,
+  UseGuards,
+  Req,
 } from '@nestjs/common';
 import { OrderItemsService } from './order-items.service';
-import { CreateOrderItemDto, UpdateOrderItemDto } from './dto/order-item.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
 
-/**
-  Contrôleur OrderItems, routes REST CRUD
-  @constructor OrderItemsService service métier injecté
-*/
-@Controller('/order-items')
+// # Contrôleur OrderItems
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Controller('order-items')
 export class OrderItemsController {
   constructor(private readonly orderItemsService: OrderItemsService) {}
 
-  /** GET /order-items : liste tous les orderItems */
+  // ✅ Un admin peut voir tous les order-items
+  @Roles('admin')
   @Get()
-  list() {
-    return this.orderItemsService.list();
+  findAll() {
+    return this.orderItemsService.findAll();
   }
 
-  /** GET /order-items/:id : détail d'un orderItem */
+  // ✅ Un utilisateur peut consulter un order-item uniquement si lié à sa commande
   @Get(':id')
-  one(@Param('id', ParseIntPipe) id: number) {
-    return this.orderItemsService.one(id);
+  findOne(@Param('id') id: string, @Req() req: any) {
+    const user = req.user;
+    return this.orderItemsService.findOneForUser(+id, user);
   }
 
-  /** POST /order-items : création d'un orderItem */
+  // ✅ Tout utilisateur connecté peut ajouter un item à sa commande
   @Post()
-  create(@Body() dto: CreateOrderItemDto) {
-    return this.orderItemsService.create(dto);
+  create(@Body() data: any, @Req() req: any) {
+    const user = req.user;
+    return this.orderItemsService.create(data, user);
   }
 
-  /** PATCH /order-items/:id : maj d'un orderItem */
+  // ✅ Admin peut modifier un item (ex. quantité)
+  @Roles('admin')
   @Patch(':id')
-  update(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() dto: UpdateOrderItemDto
-  ) {
-    return this.orderItemsService.update(id, dto);
+  update(@Param('id') id: string, @Body() data: any) {
+    return this.orderItemsService.update(+id, data);
   }
 
-  /** DELETE /order-items/:id : suppression d'un orderItem */
+  // ✅ Admin peut supprimer un item
+  @Roles('admin')
   @Delete(':id')
-  remove(@Param('id', ParseIntPipe) id: number) {
-    return this.orderItemsService.remove(id);
+  remove(@Param('id') id: string) {
+    return this.orderItemsService.remove(+id);
   }
 }
 
@@ -20473,47 +20690,53 @@ import {
   Delete,
   Param,
   Body,
-  ParseIntPipe,
+  UseGuards,
+  Req,
 } from '@nestjs/common';
 import { OrdersService } from './orders.service';
-import { CreateOrderDto, UpdateOrderDto } from './dto/order.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
 
-/**
-  Contrôleur Commandes, routes REST CRUD
-  @constructor OrdersService service métier injecté
-*/
-@Controller('/orders')
+// # Contrôleur Orders
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Controller('orders')
 export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
 
-  /** GET /orders : liste toutes les commandes */
+  // ✅ Un admin voit toutes les commandes
+  @Roles('admin')
   @Get()
-  list() {
-    return this.ordersService.list();
+  findAll() {
+    return this.ordersService.findAll();
   }
 
-  /** GET /orders/:id : détail d'une commande */
+  // ✅ Un utilisateur voit seulement ses propres commandes
   @Get(':id')
-  one(@Param('id', ParseIntPipe) id: number) {
-    return this.ordersService.one(id);
+  findOne(@Param('id') id: string, @Req() req: any) {
+    const user = req.user;
+    return this.ordersService.findOneForUser(+id, user);
   }
 
-  /** POST /orders : création d'une commande */
+  // ✅ Tout utilisateur authentifié peut créer une commande
   @Post()
-  create(@Body() dto: CreateOrderDto) {
-    return this.ordersService.create(dto);
+  create(@Body() data: any, @Req() req: any) {
+    const user = req.user;
+    return this.ordersService.create(data, user);
   }
 
-  /** PATCH /orders/:id : maj d'une commande */
+  // ✅ Un admin peut mettre à jour une commande (ex. statut)
+  @Roles('admin')
   @Patch(':id')
-  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateOrderDto) {
-    return this.ordersService.update(id, dto);
+  update(@Param('id') id: string, @Body() data: any) {
+    return this.ordersService.update(+id, data);
   }
 
-  /** DELETE /orders/:id : suppression d'une commande */
+  // ✅ Un admin peut supprimer une commande
+  @Roles('admin')
   @Delete(':id')
-  remove(@Param('id', ParseIntPipe) id: number) {
-    return this.ordersService.remove(id);
+  remove(@Param('id') id: string) {
+    return this.ordersService.remove(+id);
   }
 }
 
@@ -20529,48 +20752,50 @@ import {
   Delete,
   Param,
   Body,
-  ParseIntPipe,
+  UseGuards,
 } from '@nestjs/common';
 import { PlantsService } from './plants.service';
-import { CreatePlantDto, UpdatePlantDto } from './dto/plant.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
 
-/**
-  Contrôleur Plantes, routes REST CRUD
-  @constructor PlantsService service métier injecté
-*/
-@Controller('/plants')
+// # Contrôleur Plants
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Controller('plants')
 export class PlantsController {
   constructor(private readonly plantsService: PlantsService) {}
 
-  /** GET /plants : liste toutes les plantes */
+  // ✅ Accessible à tout utilisateur connecté
   @Get()
-  list() {
-		console.log('[PLANTS] route', 'GET /plants');
-    return this.plantsService.list();
+  findAll() {
+    return this.plantsService.findAll();
   }
 
-  /** GET /plants/:id : détail d'une plante */
+  // ✅ Accessible à tout utilisateur connecté
   @Get(':id')
-  one(@Param('id', ParseIntPipe) id: number) {
-    return this.plantsService.one(id);
+  findOne(@Param('id') id: string) {
+    return this.plantsService.findOne(+id);
   }
 
-  /** POST /plants : création d'une plante */
+  // ✅ Réservé aux admins
+  @Roles('admin')
   @Post()
-  create(@Body() dto: CreatePlantDto) {
-    return this.plantsService.create(dto);
+  create(@Body() data: any) {
+    return this.plantsService.create(data);
   }
 
-  /** PATCH /plants/:id : maj d'une plante */
+  // ✅ Réservé aux admins
+  @Roles('admin')
   @Patch(':id')
-  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdatePlantDto) {
-    return this.plantsService.update(id, dto);
+  update(@Param('id') id: string, @Body() data: any) {
+    return this.plantsService.update(+id, data);
   }
 
-  /** DELETE /plants/:id : suppression d'une plante */
+  // ✅ Réservé aux admins
+  @Roles('admin')
   @Delete(':id')
-  remove(@Param('id', ParseIntPipe) id: number) {
-    return this.plantsService.remove(id);
+  remove(@Param('id') id: string) {
+    return this.plantsService.remove(+id);
   }
 }
 
@@ -20586,47 +20811,53 @@ import {
   Delete,
   Param,
   Body,
-  ParseIntPipe,
+  UseGuards,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { CreateUserDto, UpdateUserDto } from './dto/user.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
 
-/**
-  Contrôleur Utilisateurs, routes REST CRUD
-  @constructor UsersService service métier injecté
-*/
-@Controller('/users')
+// # Contrôleur Users
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  /** GET /users : liste tous les utilisateurs */
+  // ✅ Réservé aux admins
+  @Roles('admin')
   @Get()
-  list() {
-    return this.usersService.list();
+  findAll() {
+    return this.usersService.findAll();
   }
 
-  /** GET /users/:id : détail d'un utilisateur */
+  // ✅ Réservé aux admins
+  @Roles('admin')
   @Get(':id')
-  one(@Param('id', ParseIntPipe) id: number) {
-    return this.usersService.one(id);
+  findOne(@Param('id') id: string) {
+    return this.usersService.findOne(+id);
   }
 
-  /** POST /users : création d'un utilisateur */
+  // ✅ Accessible (register se fait déjà via AuthController),
+  // mais un admin peut créer un utilisateur manuellement
+  @Roles('admin')
   @Post()
-  create(@Body() dto: CreateUserDto) {
-    return this.usersService.create(dto);
+  create(@Body() data: any) {
+    return this.usersService.create(data);
   }
 
-  /** PATCH /users/:id : maj d'un utilisateur */
+  // ✅ Réservé aux admins
+  @Roles('admin')
   @Patch(':id')
-  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateUserDto) {
-    return this.usersService.update(id, dto);
+  update(@Param('id') id: string, @Body() data: any) {
+    return this.usersService.update(+id, data);
   }
 
-  /** DELETE /users/:id : suppression d'un utilisateur */
+  // ✅ Réservé aux admins
+  @Roles('admin')
   @Delete(':id')
-  remove(@Param('id', ParseIntPipe) id: number) {
-    return this.usersService.remove(id);
+  remove(@Param('id') id: string) {
+    return this.usersService.remove(+id);
   }
 }
 
@@ -20634,12 +20865,61 @@ export class UsersController {
 
 # SERVICES
 #
+## apps/plant_shop_nest/src/app/auth/auth.service.ts
+
+// # Importations
+import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { UsersService } from '../users/users.service';
+import * as bcrypt from 'bcrypt';
+import { JwtService } from '@nestjs/jwt';
+
+// # Service d'authentification
+@Injectable()
+export class AuthService {
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly jwtService: JwtService
+  ) {}
+
+  /**
+   * Valider un utilisateur via email/mot de passe
+   */
+  async validateUser(email: string, mot_de_passe: string) {
+    const utilisateur = await this.usersService.findByEmail(email);
+    if (!utilisateur)
+      throw new UnauthorizedException('Utilisateur introuvable');
+
+    const valide = await bcrypt.compare(mot_de_passe, utilisateur.password);
+    if (!valide) throw new UnauthorizedException('Mot de passe invalide');
+
+    const { password, ...resultat } = utilisateur;
+    return resultat;
+  }
+
+  /**
+   * Générer un JWT pour un utilisateur
+   */
+  async login(utilisateur: any) {
+    const payload = {
+      sub: utilisateur.id,
+      email: utilisateur.email,
+      admin: utilisateur.admin,
+    };
+    return {
+      access_token: this.jwtService.sign(payload),
+      user: utilisateur,
+    };
+  }
+}
+
+
 ## apps/plant_shop_nest/src/app/order-items/order-items.service.ts
 
 // # Importations
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateOrderItemDto, UpdateOrderItemDto } from './dto/order-item.dto';
+import { User } from '@prisma/client';
 
 /**
   Service métier OrderItems, accès base via Prisma
@@ -20650,8 +20930,8 @@ export class OrderItemsService {
   constructor(private readonly prisma: PrismaService) {}
 
   /**
-	  Liste tous les orderItems (inclut plante et commande)
-	*/
+    Liste tous les orderItems (inclut plante et commande)
+  */
   async list() {
     return this.prisma.orderItem.findMany({
       include: { plant: true, order: true },
@@ -20659,9 +20939,9 @@ export class OrderItemsService {
   }
 
   /**
-	  Récupère un orderItem par id
-	  @id identifiant numérique orderItem
-	*/
+    Récupère un orderItem par id
+    @id identifiant numérique orderItem
+  */
   async one(id: number) {
     const orderItem = await this.prisma.orderItem.findUnique({
       where: { id },
@@ -20672,26 +20952,57 @@ export class OrderItemsService {
   }
 
   /**
-	  Création orderItem
-	  @dto données orderItem
-	*/
-  async create(dto: CreateOrderItemDto) {
-    return this.prisma.orderItem.create({ data: dto });
+    findAll (alias de list pour cohérence)
+  */
+  async findAll() {
+    return this.list();
   }
 
   /**
-	  Mise à jour orderItem (quantité)
-	  @id identifiant orderItem
-	  @dto données mises à jour
-	*/
+    recherche un item spécifique appartenant à un utilisateur
+    @id identifiant de l’item
+    @user utilisateur connecté
+  */
+  async findOneForUser(id: number, user: User) {
+    const orderItem = await this.prisma.orderItem.findFirst({
+      where: { id, order: { userId: user.id } },
+      include: { plant: true, order: true },
+    });
+    if (!orderItem)
+      throw new NotFoundException('OrderItem non trouvé pour cet utilisateur');
+    return orderItem;
+  }
+
+  /**
+    Création orderItem (corrigé pour prendre user et dto)
+    @dto données orderItem
+    @user utilisateur connecté
+  */
+  async create(dto: CreateOrderItemDto, user: User) {
+    return this.prisma.orderItem.create({
+      data: {
+        ...dto,
+        order: {
+          connect: { id: dto.orderId },
+        },
+        userId: user.id,
+      },
+    });
+  }
+
+  /**
+    Mise à jour orderItem (quantité)
+    @id identifiant orderItem
+    @dto données mises à jour
+  */
   async update(id: number, dto: UpdateOrderItemDto) {
     return this.prisma.orderItem.update({ where: { id }, data: dto });
   }
 
   /**
-	  Suppression orderItem
-	  @id identifiant orderItem
-	*/
+    Suppression orderItem
+    @id identifiant orderItem
+  */
   async remove(id: number) {
     return this.prisma.orderItem.delete({ where: { id } });
   }
@@ -20708,6 +21019,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateOrderDto, UpdateOrderDto } from './dto/order.dto';
+import { User } from '@prisma/client';
 
 /**
   Service métier des commandes, accès base via Prisma
@@ -20718,8 +21030,8 @@ export class OrdersService {
   constructor(private readonly prisma: PrismaService) {}
 
   /**
-	  Liste toutes les commandes (optionnel : inclure items/plantes)
-	*/
+    Liste toutes les commandes (optionnel : inclure items/plantes)
+  */
   async list() {
     return this.prisma.order.findMany({
       include: { orderItems: { include: { plant: true } } },
@@ -20727,9 +21039,16 @@ export class OrdersService {
   }
 
   /**
-	  Détail commande par id (inclut items/plantes)
-	  @id identifiant numérique commande
-	*/
+    findAll (alias de list)
+  */
+  async findAll() {
+    return this.list();
+  }
+
+  /**
+    Détail commande par id (inclut items/plantes)
+    @id identifiant numérique commande
+  */
   async one(id: number) {
     const order = await this.prisma.order.findUnique({
       where: { id },
@@ -20740,15 +21059,31 @@ export class OrdersService {
   }
 
   /**
-	  Création commande (vérifie stock, crée orderItems, maj stock, calcule total)
-	  @dto données commande
-	*/
-  async create(dto: CreateOrderDto) {
+    retourne une commande pour un utilisateur donné
+    @id identifiant de la commande
+    @user utilisateur connecté
+  */
+  async findOneForUser(id: number, user: User) {
+    const order = await this.prisma.order.findFirst({
+      where: { id, userId: user.id },
+      include: { orderItems: { include: { plant: true } } },
+    });
+    if (!order)
+      throw new NotFoundException('Commande non trouvée pour cet utilisateur');
+    return order;
+  }
+
+  /**
+    Création commande (corrigé pour attendre aussi l’utilisateur)
+    @dto données commande
+    @user utilisateur connecté
+  */
+  async create(dto: CreateOrderDto, user: User) {
     let total = 0;
-    const { userId, items } = dto;
+    const { items } = dto;
 
     const order = await this.prisma.order.create({
-      data: { userId, status: 'confirmed', totalPrice: 0 },
+      data: { userId: user.id, status: 'confirmed', totalPrice: 0 },
     });
 
     for (const item of items) {
@@ -20777,18 +21112,18 @@ export class OrdersService {
   }
 
   /**
-	  Mise à jour commande (statut, items)
-	  @id identifiant commande
-	  @dto données mises à jour
-	*/
+    Mise à jour commande (statut, items)
+    @id identifiant commande
+    @dto données mises à jour
+  */
   async update(id: number, dto: UpdateOrderDto) {
     return this.prisma.order.update({ where: { id }, data: dto });
   }
 
   /**
-	  Suppression commande (+ suppression items liés)
-	  @id identifiant commande
-	*/
+    Suppression commande (+ suppression items liés)
+    @id identifiant commande
+  */
   async remove(id: number) {
     await this.prisma.orderItem.deleteMany({ where: { orderId: id } });
     return this.prisma.order.delete({ where: { id } });
@@ -20812,8 +21147,8 @@ export class PlantsService {
   constructor(private readonly prisma: PrismaService) {}
 
   /**
-	  Retourne toutes les plantes disponibles (stock >= 1)
-	*/
+    Retourne toutes les plantes disponibles (stock >= 1)
+  */
   async list() {
     return this.prisma.plant.findMany({
       where: { stock: { gte: 1 } },
@@ -20822,9 +21157,16 @@ export class PlantsService {
   }
 
   /**
-	  Retourne une plante par id
-	  @id identifiant numérique plante
-	*/
+    findAll (alias de list)
+  */
+  async findAll() {
+    return this.list();
+  }
+
+  /**
+    Retourne une plante par id
+    @id identifiant numérique plante
+  */
   async one(id: number) {
     const plant = await this.prisma.plant.findUnique({ where: { id } });
     if (!plant) throw new NotFoundException('Plante non trouvée');
@@ -20832,26 +21174,33 @@ export class PlantsService {
   }
 
   /**
-	  Création plante
-	  @dto données plante
-	*/
+    findOne (alias de one)
+  */
+  async findOne(id: number) {
+    return this.one(id);
+  }
+
+  /**
+    Création plante
+    @dto données plante
+  */
   async create(dto: CreatePlantDto) {
     return this.prisma.plant.create({ data: dto });
   }
 
   /**
-	  Mise à jour plante
-	  @id identifiant plante
-	  @dto données mises à jour
-	*/
+    Mise à jour plante
+    @id identifiant plante
+    @dto données mises à jour
+  */
   async update(id: number, dto: UpdatePlantDto) {
     return this.prisma.plant.update({ where: { id }, data: dto });
   }
 
   /**
-	  Suppression plante
-	  @id identifiant plante
-	*/
+    Suppression plante
+    @id identifiant plante
+  */
   async remove(id: number) {
     return this.prisma.plant.delete({ where: { id } });
   }
@@ -20875,8 +21224,8 @@ export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
 
   /**
-	  Liste tous les utilisateurs (admins d'abord, tri par nom)
-	*/
+    Liste tous les utilisateurs (admins d'abord, tri par nom)
+  */
   async list() {
     return this.prisma.user.findMany({
       orderBy: [{ admin: 'desc' }, { name: 'asc' }],
@@ -20884,9 +21233,16 @@ export class UsersService {
   }
 
   /**
-	  Récupère un utilisateur par id
-	  @id identifiant numérique utilisateur
-	*/
+    findAll (alias de list)
+  */
+  async findAll() {
+    return this.list();
+  }
+
+  /**
+    Récupère un utilisateur par id
+    @id identifiant numérique utilisateur
+  */
   async one(id: number) {
     const user = await this.prisma.user.findUnique({ where: { id } });
     if (!user) throw new NotFoundException('Utilisateur non trouvé');
@@ -20894,19 +21250,26 @@ export class UsersService {
   }
 
   /**
-	  Création utilisateur (mot de passe hashé)
-	  @dto données utilisateur
-	*/
+    findOne (alias de one)
+  */
+  async findOne(id: number) {
+    return this.one(id);
+  }
+
+  /**
+    Création utilisateur (mot de passe hashé)
+    @dto données utilisateur
+  */
   async create(dto: CreateUserDto) {
     const data = { ...dto, password: await bcrypt.hash(dto.password, 10) };
     return this.prisma.user.create({ data });
   }
 
   /**
-	  Mise à jour utilisateur
-	  @id identifiant utilisateur
-	  @dto données mises à jour (hash password si présent)
-	*/
+    Mise à jour utilisateur
+    @id identifiant utilisateur
+    @dto données mises à jour (hash password si présent)
+  */
   async update(id: number, dto: UpdateUserDto) {
     const data = { ...dto };
     if (data.password) data.password = await bcrypt.hash(data.password, 10);
@@ -20914,11 +21277,19 @@ export class UsersService {
   }
 
   /**
-	  Suppression utilisateur
-	  @id identifiant utilisateur
-	*/
+    Suppression utilisateur
+    @id identifiant utilisateur
+  */
   async remove(id: number) {
     return this.prisma.user.delete({ where: { id } });
+  }
+
+  /**
+    Cherche un utilisateur par email
+    @param email email utilisateur
+  */
+  async findByEmail(email: string) {
+    return this.prisma.user.findUnique({ where: { email } });
   }
 }
 
@@ -20948,6 +21319,34 @@ export class AngularModule implements NestModule {
       .forRoutes('*');
   }
 }
+
+
+## apps/plant_shop_nest/src/app/auth/auth.module.ts
+
+import { Module } from '@nestjs/common';
+import { JwtModule } from '@nestjs/jwt';
+import { PassportModule } from '@nestjs/passport';
+import { UsersModule } from '../users/users.module';
+import { AuthService } from './auth.service';
+import { AuthController } from './auth.controller';
+import { LocalStrategy } from './local.strategy';
+import { JwtStrategy } from './jwt.strategy';
+import { RolesGuard } from './roles.guard';
+
+@Module({
+  imports: [
+    UsersModule,
+    PassportModule,
+    JwtModule.register({
+      secret: process.env.JWT_SECRET || 'dev_secret',
+      signOptions: { expiresIn: '1h' },
+    }),
+  ],
+  controllers: [AuthController],
+  providers: [AuthService, LocalStrategy, JwtStrategy, AuthService, LocalStrategy, JwtStrategy, RolesGuard],
+  exports: [AuthService],
+})
+export class AuthModule {}
 
 
 ## apps/plant_shop_nest/src/app/order-items/order-items.module.ts
@@ -21999,6 +22398,27 @@ export class NxWelcome {}
 
 # ANGULAR COMPONENTS
 #
+## apps/plant-shop-angular-universal/src/app/components/cart.component.ts
+
+// # Importations
+import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
+
+// # Panier
+@Component({
+  standalone: true,
+  selector: 'app-cart',
+  imports: [CommonModule],
+  template: `
+    <h2>🛒 Mon Panier</h2>
+    <p>
+      Fonctionnalité panier à implémenter (localStorage ou service partagé).
+    </p>
+  `,
+})
+export class CartComponent {}
+
+
 ## apps/plant-shop-angular-universal/src/app/components/hello.spec.ts
 
 import { ComponentFixture, TestBed } from '@angular/core/testing';
@@ -22035,6 +22455,115 @@ import { Component } from '@angular/core';
   styleUrl: './hello.css',
 })
 export class Hello {}
+
+
+## apps/plant-shop-angular-universal/src/app/components/order-new.component.ts
+
+// # Importations
+import { Component, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { ApiService } from '../services/api.service';
+
+// # Nouvelle commande
+@Component({
+  standalone: true,
+  selector: 'app-order-new',
+  imports: [CommonModule],
+  template: `
+    <h2>📝 Nouvelle commande</h2>
+    <form (ngSubmit)="soumettre()">
+      <p>
+        Exemple : valider une commande pour l’utilisateur #1 avec une plante
+        fictive.
+      </p>
+      <button type="submit">Passer commande</button>
+    </form>
+    <p *ngIf="message" class="alert alert-info">{{ message }}</p>
+  `,
+})
+export class OrderNewComponent {
+  private api = inject(ApiService);
+  protected message = '';
+
+  soumettre() {
+    const payload = { userId: 1, items: [{ plantId: 1, quantity: 1 }] };
+    this.api.creerCommande(payload).subscribe({
+      next: (res) => (this.message = `Commande #${res.id} créée ✅`),
+      error: () => (this.message = 'Erreur lors de la commande ❌'),
+    });
+  }
+}
+
+
+## apps/plant-shop-angular-universal/src/app/components/plant-detail.component.ts
+
+// # Importations
+import { Component, OnInit, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { ActivatedRoute, RouterModule } from '@angular/router';
+import { ApiService, Plante } from '../services/api.service';
+
+// # Détail d'une plante
+@Component({
+  standalone: true,
+  selector: 'app-plant-detail',
+  imports: [CommonModule, RouterModule],
+  template: `
+    <a routerLink="/">← Retour</a>
+    <div *ngIf="plante">
+      <h2>{{ plante.name }}</h2>
+      <p><strong>Prix :</strong> {{ plante.price }} €</p>
+      <p><strong>Stock :</strong> {{ plante.stock }}</p>
+      <p *ngIf="plante.description">
+        <em>{{ plante.description }}</em>
+      </p>
+    </div>
+  `,
+})
+export class PlantDetailComponent implements OnInit {
+  private route = inject(ActivatedRoute);
+  private api = inject(ApiService);
+  protected plante: Plante | null = null;
+
+  ngOnInit() {
+    const id = Number(this.route.snapshot.paramMap.get('id'));
+    this.api.unePlante(id).subscribe((donnees) => (this.plante = donnees));
+  }
+}
+
+
+## apps/plant-shop-angular-universal/src/app/components/plants-list.component.ts
+
+// # Importations
+import { Component, OnInit, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
+import { ApiService, Plante } from '../services/api.service';
+
+// # Liste des plantes
+@Component({
+  standalone: true,
+  selector: 'app-plants-list',
+  imports: [CommonModule, RouterModule],
+  template: `
+    <h2>🌿 Plantes disponibles</h2>
+    <ul>
+      <li *ngFor="let plante of plantes">
+        <a [routerLink]="['/plants', plante.id]">
+          {{ plante.name }} — {{ plante.price }} € (Stock: {{ plante.stock }})
+        </a>
+      </li>
+    </ul>
+  `,
+})
+export class PlantsListComponent implements OnInit {
+  private api = inject(ApiService);
+  protected plantes: Plante[] = [];
+
+  ngOnInit() {
+    this.api.listerPlantes().subscribe((donnees) => (this.plantes = donnees));
+  }
+}
 
 
 

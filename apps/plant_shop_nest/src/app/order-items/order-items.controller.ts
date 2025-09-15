@@ -7,49 +7,52 @@ import {
   Delete,
   Param,
   Body,
-  ParseIntPipe,
+  UseGuards,
+  Req,
 } from '@nestjs/common';
 import { OrderItemsService } from './order-items.service';
-import { CreateOrderItemDto, UpdateOrderItemDto } from './dto/order-item.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
 
-/**
-  Contrôleur OrderItems, routes REST CRUD
-  @constructor OrderItemsService service métier injecté
-*/
-@Controller('/order-items')
+// # Contrôleur OrderItems
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Controller('order-items')
 export class OrderItemsController {
   constructor(private readonly orderItemsService: OrderItemsService) {}
 
-  /** GET /order-items : liste tous les orderItems */
+  // ✅ Un admin peut voir tous les order-items
+  @Roles('admin')
   @Get()
-  list() {
-    return this.orderItemsService.list();
+  findAll() {
+    return this.orderItemsService.findAll();
   }
 
-  /** GET /order-items/:id : détail d'un orderItem */
+  // ✅ Un utilisateur peut consulter un order-item uniquement si lié à sa commande
   @Get(':id')
-  one(@Param('id', ParseIntPipe) id: number) {
-    return this.orderItemsService.one(id);
+  findOne(@Param('id') id: string, @Req() req: any) {
+    const user = req.user;
+    return this.orderItemsService.findOneForUser(+id, user);
   }
 
-  /** POST /order-items : création d'un orderItem */
+  // ✅ Tout utilisateur connecté peut ajouter un item à sa commande
   @Post()
-  create(@Body() dto: CreateOrderItemDto) {
-    return this.orderItemsService.create(dto);
+  create(@Body() data: any, @Req() req: any) {
+    const user = req.user;
+    return this.orderItemsService.create(data, user);
   }
 
-  /** PATCH /order-items/:id : maj d'un orderItem */
+  // ✅ Admin peut modifier un item (ex. quantité)
+  @Roles('admin')
   @Patch(':id')
-  update(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() dto: UpdateOrderItemDto
-  ) {
-    return this.orderItemsService.update(id, dto);
+  update(@Param('id') id: string, @Body() data: any) {
+    return this.orderItemsService.update(+id, data);
   }
 
-  /** DELETE /order-items/:id : suppression d'un orderItem */
+  // ✅ Admin peut supprimer un item
+  @Roles('admin')
   @Delete(':id')
-  remove(@Param('id', ParseIntPipe) id: number) {
-    return this.orderItemsService.remove(id);
+  remove(@Param('id') id: string) {
+    return this.orderItemsService.remove(+id);
   }
 }

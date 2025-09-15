@@ -1,3 +1,4 @@
+// # Importations
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -7,7 +8,9 @@ import { UsersModule } from './users/users.module';
 import { PlantsModule } from './plants/plants.module';
 import { OrdersModule } from './orders/orders.module';
 import { OrderItemsModule } from './order-items/order-items.module';
+import { AuthModule } from './auth/auth.module';
 
+// # Module principal
 @Module({
   imports: [
     ...(process.env.SERVE_SSR === 'true' ? [AngularModule] : []),
@@ -16,6 +19,7 @@ import { OrderItemsModule } from './order-items/order-items.module';
     PlantsModule,
     OrdersModule,
     OrderItemsModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],

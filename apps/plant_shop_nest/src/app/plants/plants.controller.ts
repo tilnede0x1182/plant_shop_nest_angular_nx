@@ -7,47 +7,49 @@ import {
   Delete,
   Param,
   Body,
-  ParseIntPipe,
+  UseGuards,
 } from '@nestjs/common';
 import { PlantsService } from './plants.service';
-import { CreatePlantDto, UpdatePlantDto } from './dto/plant.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
 
-/**
-  Contrôleur Plantes, routes REST CRUD
-  @constructor PlantsService service métier injecté
-*/
-@Controller('/plants')
+// # Contrôleur Plants
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Controller('plants')
 export class PlantsController {
   constructor(private readonly plantsService: PlantsService) {}
 
-  /** GET /plants : liste toutes les plantes */
+  // ✅ Accessible à tout utilisateur connecté
   @Get()
-  list() {
-		console.log('[PLANTS] route', 'GET /plants');
-    return this.plantsService.list();
+  findAll() {
+    return this.plantsService.findAll();
   }
 
-  /** GET /plants/:id : détail d'une plante */
+  // ✅ Accessible à tout utilisateur connecté
   @Get(':id')
-  one(@Param('id', ParseIntPipe) id: number) {
-    return this.plantsService.one(id);
+  findOne(@Param('id') id: string) {
+    return this.plantsService.findOne(+id);
   }
 
-  /** POST /plants : création d'une plante */
+  // ✅ Réservé aux admins
+  @Roles('admin')
   @Post()
-  create(@Body() dto: CreatePlantDto) {
-    return this.plantsService.create(dto);
+  create(@Body() data: any) {
+    return this.plantsService.create(data);
   }
 
-  /** PATCH /plants/:id : maj d'une plante */
+  // ✅ Réservé aux admins
+  @Roles('admin')
   @Patch(':id')
-  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdatePlantDto) {
-    return this.plantsService.update(id, dto);
+  update(@Param('id') id: string, @Body() data: any) {
+    return this.plantsService.update(+id, data);
   }
 
-  /** DELETE /plants/:id : suppression d'une plante */
+  // ✅ Réservé aux admins
+  @Roles('admin')
   @Delete(':id')
-  remove(@Param('id', ParseIntPipe) id: number) {
-    return this.plantsService.remove(id);
+  remove(@Param('id') id: string) {
+    return this.plantsService.remove(+id);
   }
 }

@@ -10,7 +10,7 @@ import {
 // # Données (DTOs)
 export class CreateUserDto {
   @IsEmail() email!: string;
-  @IsString() @IsNotEmpty() name!: string;
+  @IsString() @IsNotEmpty() name?: string;
   @IsString() @IsNotEmpty() password!: string;
   @IsBoolean() @IsOptional() admin?: boolean;
 }
