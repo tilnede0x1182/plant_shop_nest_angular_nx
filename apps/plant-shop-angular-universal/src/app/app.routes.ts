@@ -1,6 +1,7 @@
 // # Importations
 import { Route } from '@angular/router';
 import { AuthGuard } from './auth/auth.guard';
+import { AdminGuard } from './auth/admin.guard';
 
 export const appRoutes: Route[] = [
   // 🌿 Produits
@@ -81,7 +82,7 @@ export const appRoutes: Route[] = [
       import('./admin/users-list/users-list.component').then(
         (m) => m.UsersListComponent
       ),
-    canActivate: [AuthGuard],
+    canActivate: [AdminGuard],
   },
   {
     path: 'admin/dashboard',
@@ -89,7 +90,7 @@ export const appRoutes: Route[] = [
       import('./admin/dashboard/dashboard.component').then(
         (m) => m.DashboardComponent
       ),
-    canActivate: [AuthGuard],
+    canActivate: [AdminGuard],
   },
 
   // Route par défaut
