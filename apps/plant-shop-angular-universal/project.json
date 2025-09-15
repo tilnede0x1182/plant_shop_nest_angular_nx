@@ -116,11 +116,13 @@
       "configurations": {
         "development": {
           "browserTarget": "plant-shop-angular-universal:build:development",
-          "serverTarget": "plant-shop-angular-universal:server:development"
+          "serverTarget": "plant-shop-angular-universal:server:development",
+          "proxyConfig": "proxy.conf.json"
         },
         "production": {
           "browserTarget": "plant-shop-angular-universal:build:production",
-          "serverTarget": "plant-shop-angular-universal:server:production"
+          "serverTarget": "plant-shop-angular-universal:server:production",
+          "proxyConfig": "proxy.conf.json"
         }
       },
       "defaultConfiguration": "development"

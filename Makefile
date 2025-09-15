@@ -1,20 +1,14 @@
-run-dev-frontend:
-	npm run dev-frontend
+run:
+	npm run dev
 
-run-dev-backend:
-	npm run dev-backend
+test-e2e:
+	npm run test-e2e
 
-build-frontend:
-	npm run build-dev-frontend
+build:
+	npm run build
 
-build-backend:
-	npm run build-dev-backend
+prod:
+	npm run start
 
-build-frontend-prod:
-	npm run build-prod-frontend
-
-build-backend-prod:
-	npm run build-prod-backend
-
-run-prod:
-	npm run prod
+typage:
+	npx tsc --noEmit

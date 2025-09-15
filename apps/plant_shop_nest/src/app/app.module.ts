@@ -10,7 +10,7 @@ import { OrderItemsModule } from './order-items/order-items.module';
 
 @Module({
   imports: [
-    // AngularModule,
+    ...(process.env.SERVE_SSR === 'true' ? [AngularModule] : []),
     PrismaModule,
     UsersModule,
     PlantsModule,
