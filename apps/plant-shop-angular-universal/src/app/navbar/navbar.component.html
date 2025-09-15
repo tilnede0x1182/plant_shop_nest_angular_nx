@@ -9,14 +9,15 @@
 			<ul class="navbar-nav ms-auto">
 				<li class="nav-item">
 					<a routerLink="/cart" class="nav-link">
-						Mon Panier <span *ngIf="nombreArticles > 0">({{ nombreArticles }})</span>
+						<!-- Mon Panier <span *ngIf="nombreArticles > 0">({{ nombreArticles }})</span>-->
+						Mon Panier <span>({{ nombreArticles }})</span>
 					</a>
 				</li>
 				<li class="nav-item" *ngIf="!estConnecte">
-					<a class="nav-link" routerLink="/login">Connexion</a>
+					<a class="nav-link" routerLink="/register">S'inscrire</a>
 				</li>
 				<li class="nav-item" *ngIf="!estConnecte">
-					<a class="nav-link" routerLink="/register">Inscription</a>
+					<a class="nav-link" routerLink="/login">Se connecter</a>
 				</li>
 				<li class="nav-item dropdown" *ngIf="estConnecte">
 					<a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
