@@ -16,7 +16,7 @@ import { CreateOrderDto, UpdateOrderDto } from './dto/order.dto';
   Contrôleur Commandes, routes REST CRUD
   @constructor OrdersService service métier injecté
 */
-@Controller('orders')
+@Controller('/orders')
 export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
 
