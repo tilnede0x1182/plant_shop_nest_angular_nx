@@ -3,7 +3,7 @@
 /* ---------- configuration ---------- */
 // Utiliser la configuration à partir des variables d'environnement avec des valeurs par défaut
 const config = {
-  apiBaseUrl: process.env.DATABASE_URL || 'http://localhost:4100',
+  apiBaseUrl: process.env.DATABASE_URL || 'http://localhost:4100/api',
   logLevel: 'verbose', // 'silent', 'normal', 'verbose'
 };
 

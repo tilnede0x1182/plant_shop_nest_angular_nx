@@ -16,7 +16,7 @@ import { CreateUserDto, UpdateUserDto } from './dto/user.dto';
   Contrôleur Utilisateurs, routes REST CRUD
   @constructor UsersService service métier injecté
 */
-@Controller('users')
+@Controller('/users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 

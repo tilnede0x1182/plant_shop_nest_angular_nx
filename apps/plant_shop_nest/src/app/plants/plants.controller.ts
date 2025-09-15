@@ -16,7 +16,7 @@ import { CreatePlantDto, UpdatePlantDto } from './dto/plant.dto';
   Contrôleur Plantes, routes REST CRUD
   @constructor PlantsService service métier injecté
 */
-@Controller('plants')
+@Controller('/plants')
 export class PlantsController {
   constructor(private readonly plantsService: PlantsService) {}
 
