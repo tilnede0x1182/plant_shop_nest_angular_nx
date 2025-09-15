@@ -18,7 +18,7 @@ export class NavbarComponent {
   private router = inject(Router);
   private cartService = inject(CartService);
 
-  nombreArticles = 0;
+  nombreArticles = 1;
 
   constructor() {
     this.cartService.cartCount$.subscribe((count) => {
