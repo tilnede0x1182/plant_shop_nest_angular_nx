@@ -1,2 +1,14 @@
-<app-nx-welcome></app-nx-welcome>
-<router-outlet></router-outlet>
+<!-- # Layout minimal -->
+<header class="container">
+	<h1>🌿 PlantShop</h1>
+	<nav>
+		<a routerLink="/">Plantes</a> |
+		<a routerLink="/cart">Panier</a> |
+		<a routerLink="/orders/new">Commander</a>
+	</nav>
+	<hr />
+</header>
+
+<main class="container">
+	<router-outlet />
+</main>

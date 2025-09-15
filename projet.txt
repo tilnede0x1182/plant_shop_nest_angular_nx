@@ -125,13 +125,12 @@
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {
-    "dev-frontend": "nx serve plant-shop-angular-universal --port=8300 --proxy-config proxy.conf.json",
-    "dev-backend": "PORT=4100 nx serve plant_shop_nest",
-    "build-dev-frontend": "nx build plant-shop-angular-universal",
-    "build-dev-backend": "nx build plant_shop_nest",
-    "build-prod-frontend": "nx build plant-shop-angular-universal --configuration=production",
-    "build-prod-backend": "nx build plant_shop_nest --configuration=production",
-    "prod": "PORT=4100 node dist/apps/plant_shop_nest/main.js"
+    "test-e2e": "SERVE_SSR=false PORT=4100 nx serve plant_shop_nest",
+    "dev": "nx run plant-shop-angular-universal:serve-ssr --configuration=development",
+    "build-frontend": "nx build plant-shop-angular-universal --configuration=production",
+    "build-backend": "nx build plant_shop_nest --configuration=production",
+    "build": "npm run build-frontend && npm run build-backend",
+    "start": "SERVE_SSR=true PORT=4100 node dist/apps/plant_shop_nest/main.js"
   },
   "private": true,
   "dependencies": {
@@ -19368,11 +19367,13 @@ export default [
       "configurations": {
         "development": {
           "browserTarget": "plant-shop-angular-universal:build:development",
-          "serverTarget": "plant-shop-angular-universal:server:development"
+          "serverTarget": "plant-shop-angular-universal:server:development",
+          "proxyConfig": "proxy.conf.json"
         },
         "production": {
           "browserTarget": "plant-shop-angular-universal:build:production",
-          "serverTarget": "plant-shop-angular-universal:server:production"
+          "serverTarget": "plant-shop-angular-universal:server:production",
+          "proxyConfig": "proxy.conf.json"
         }
       },
       "defaultConfiguration": "development"
@@ -20201,7 +20202,7 @@ import { OrderItemsModule } from './order-items/order-items.module';
 
 @Module({
   imports: [
-    // AngularModule,
+    ...(process.env.SERVE_SSR === 'true' ? [AngularModule] : []),
     PrismaModule,
     UsersModule,
     PlantsModule,
@@ -21044,9 +21045,39 @@ export const appConfig: ApplicationConfig = {
 
 ## apps/plant-shop-angular-universal/src/app/app.routes.ts
 
+// # Importations
 import { Route } from '@angular/router';
 
-export const appRoutes: Route[] = [];
+// # Routes principales (standalone)
+export const appRoutes: Route[] = [
+  {
+    path: '',
+    loadComponent: () =>
+      import('./components/plants-list.component').then(
+        (m) => m.PlantsListComponent
+      ),
+  },
+  {
+    path: 'plants/:id',
+    loadComponent: () =>
+      import('./components/plant-detail.component').then(
+        (m) => m.PlantDetailComponent
+      ),
+  },
+  {
+    path: 'cart',
+    loadComponent: () =>
+      import('./components/cart.component').then((m) => m.CartComponent),
+  },
+  {
+    path: 'orders/new',
+    loadComponent: () =>
+      import('./components/order-new.component').then(
+        (m) => m.OrderNewComponent
+      ),
+  },
+  { path: '**', redirectTo: '' },
+];
 
 
 ## apps/plant-shop-angular-universal/src/app/app.spec.ts
@@ -21075,19 +21106,18 @@ describe('App', () => {
 
 ## apps/plant-shop-angular-universal/src/app/app.ts
 
+// # Importations
 import { Component } from '@angular/core';
 import { RouterModule } from '@angular/router';
-import { NxWelcome } from './nx-welcome';
 
+// # Composant racine (shell)
 @Component({
-  imports: [NxWelcome, RouterModule],
   selector: 'app-root',
+  imports: [RouterModule],
   templateUrl: './app.html',
   styleUrl: './app.css',
 })
-export class App {
-  protected title = 'plant-shop-angular-universal';
-}
+export class App {}
 
 
 ## apps/plant-shop-angular-universal/src/app/nx-welcome.ts
@@ -22012,20 +22042,53 @@ export class Hello {}
 #
 ## apps/plant-shop-angular-universal/src/app/services/api.service.ts
 
+// # Importations
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
-@Injectable({
-  providedIn: 'root',
-})
+// # Données
+export type Identifiant = number;
+export type Plante = {
+  id: number;
+  name: string;
+  price: number;
+  stock: number;
+  description?: string;
+};
+export type CommandeItem = { plantId: number; quantity: number };
+export type CommandePayload = { userId: number; items: CommandeItem[] };
+export type Utilisateur = {
+  id: number;
+  email: string;
+  name?: string;
+  admin?: boolean;
+};
+
+// # Service principal
+@Injectable({ providedIn: 'root' })
 export class ApiService {
   private http = inject(HttpClient);
-  private apiUrl = '/api'; // URL relative pour fonctionner avec SSR
+  private base = '/api';
 
-  // Méthode pour récupérer le message de bienvenue
-  getHello(): Observable<{ message: string }> {
-    return this.http.get<{ message: string }>(`${this.apiUrl}/hello`);
+  /** GET /api/plants */
+  listerPlantes(): Observable<Plante[]> {
+    return this.http.get<Plante[]>(`${this.base}/plants`);
+  }
+
+  /** GET /api/plants/:id */
+  unePlante(id: Identifiant): Observable<Plante> {
+    return this.http.get<Plante>(`${this.base}/plants/${id}`);
+  }
+
+  /** POST /api/orders */
+  creerCommande(payload: CommandePayload): Observable<{ id: number }> {
+    return this.http.post<{ id: number }>(`${this.base}/orders`, payload);
+  }
+
+  /** GET /api/orders/:id */
+  uneCommande(id: Identifiant): Observable<any> {
+    return this.http.get<any>(`${this.base}/orders/${id}`);
   }
 }
 

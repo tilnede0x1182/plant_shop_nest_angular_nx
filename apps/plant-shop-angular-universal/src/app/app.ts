@@ -1,13 +1,12 @@
+// # Importations
 import { Component } from '@angular/core';
 import { RouterModule } from '@angular/router';
-import { NxWelcome } from './nx-welcome';
 
+// # Composant racine (shell)
 @Component({
-  imports: [NxWelcome, RouterModule],
   selector: 'app-root',
+  imports: [RouterModule],
   templateUrl: './app.html',
   styleUrl: './app.css',
 })
-export class App {
-  protected title = 'plant-shop-angular-universal';
-}
+export class App {}
