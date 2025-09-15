@@ -28,10 +28,14 @@ export class PlantsListComponent implements OnInit {
   protected plantes: Plante[] = [];
 
   /**
-   * Charge la liste des plantes (publique)
+   * Charge la liste des plantes (publique), filtre et trie
    */
   ngOnInit(): void {
-    this.api.listerPlantes().subscribe((donnees) => (this.plantes = donnees));
+    this.api.listerPlantes().subscribe((donnees) => {
+      this.plantes = donnees
+        .filter((plante) => plante.stock > 0)
+        .sort((a, b) => a.name.localeCompare(b.name));
+    });
   }
 
   /**

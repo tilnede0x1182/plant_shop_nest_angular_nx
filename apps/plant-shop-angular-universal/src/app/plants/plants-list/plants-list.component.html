@@ -1,5 +1,5 @@
 <div class="container mt-4">
-	<h1 class="mb-4">Nos Plantes</h1>
+	<h1 class="text-center my-4">🌿 Liste des Plantes</h1>
 
 	<div class="row">
 		<div class="col-md-4 mb-4" *ngFor="let plant of plantes">
@@ -11,13 +11,8 @@
 						</a>
 					</h5>
 					<p class="card-text text-muted mb-1">Prix : {{ plant.price }} €</p>
-					<p class="card-text" *ngIf="plant.stock > 0; else rupture">
-						Stock : {{ plant.stock }}
-					</p>
-					<ng-template #rupture>
-						<p class="card-text text-danger">Rupture de stock</p>
-					</ng-template>
-					<button class="btn btn-primary mt-auto" [disabled]="plant.stock === 0" (click)="addToCart(plant)">
+					<p class="card-text">Stock : {{ plant.stock }}</p>
+					<button class="btn btn-success mt-auto" (click)="addToCart(plant)">
 						Ajouter au panier
 					</button>
 				</div>
