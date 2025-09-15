@@ -13,6 +13,9 @@ test-e2e:
 build:
 	npm run build
 
+test-routes:
+	npm run test-routes
+
 prod:
 	npm run start
 

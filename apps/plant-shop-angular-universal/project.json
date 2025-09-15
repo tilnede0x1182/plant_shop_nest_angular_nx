@@ -24,7 +24,8 @@
         "styles": [
           "node_modules/bootstrap/dist/css/bootstrap.min.css",
           "apps/plant-shop-angular-universal/src/styles.css"
-        ]
+        ],
+        "scripts": ["node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"]
       },
       "configurations": {
         "production": {

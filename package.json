@@ -10,7 +10,8 @@
     "build-frontend": "nx build plant-shop-angular-universal --configuration=production",
     "build-backend": "nx build plant_shop_nest --configuration=production",
     "build": "npm run build-frontend && npm run build-backend",
-    "start": "SERVE_SSR=true PORT=4100 node dist/apps/plant_shop_nest/main.js"
+    "start": "SERVE_SSR=true PORT=4100 node dist/apps/plant_shop_nest/main.js",
+    "test-routes": "node tests/test_complet.js"
   },
   "private": true,
   "dependencies": {
