@@ -23,6 +23,7 @@ export class NavbarComponent implements OnInit {
 
   nombreArticles = 0;
   userName = '';
+  userId: number | null = null;
 
   /**
    * Init : abonne le compteur et lit l'utilisateur depuis storage (si dispo)
@@ -71,6 +72,7 @@ export class NavbarComponent implements OnInit {
     try {
       const u = JSON.parse(brut);
       this.userName = this.capitalizeName(String(u?.name || ''));
+      this.userId = typeof u?.id !== 'undefined' ? Number(u.id) : null;
     } catch {
       /* ignore parse error */
     }
