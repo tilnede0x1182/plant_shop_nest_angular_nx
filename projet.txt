@@ -103,7 +103,6 @@
 │       ├── eslint.config.mjs
 │       ├── jest.config.ts
 │       ├── project.json
-│       ├── projet.txt
 │       ├── src
 │       │   ├── app
 │       │   │   ├── angular
@@ -188,7 +187,7 @@
 ├── users.txt
 └── vitest.workspace.ts
 
-47 directories, 139 files
+47 directories, 138 files
 
 # CONFIGURATION
 #
