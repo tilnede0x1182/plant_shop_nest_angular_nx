@@ -21,8 +21,14 @@ export class RegisterComponent {
   email = '';
   password = '';
   message = '';
+  passwordConfirmation: string = '';
 
   onSubmit() {
+    if (this.password !== this.passwordConfirmation) {
+      this.message = '❌ Les mots de passe ne correspondent pas';
+      return;
+    }
+
     this.auth.register(this.email, this.password, this.name).subscribe({
       next: () => {
         this.message = 'Compte créé ✅';
