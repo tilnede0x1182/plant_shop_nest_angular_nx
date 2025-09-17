@@ -23,11 +23,14 @@ export class LoginComponent {
 
   onSubmit() {
     this.auth.login(this.email, this.password).subscribe({
-      next: () => {
+      next: (data) => {
+        localStorage.setItem('user', JSON.stringify(data.user));
+        localStorage.setItem('token', data.access_token);
         this.message = 'Connexion réussie ✅';
-        this.router.navigate(['/']);
+        this.router.navigate(['/plants']);
       },
-      error: () => (this.message = '❌ Échec de connexion'),
+
+      error: () => (this.message = '❌ Erreur lors de la connexion'),
     });
   }
 }

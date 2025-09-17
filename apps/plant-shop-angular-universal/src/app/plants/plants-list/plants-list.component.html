@@ -11,7 +11,7 @@
 						</a>
 					</h5>
 					<p class="card-text text-muted mb-1">Prix : {{ plant.price }} €</p>
-					<p class="card-text">Stock : {{ plant.stock }}</p>
+					<p *ngIf="estAdmin" class="card-text text-muted mb-1">Stock : {{ plant.stock }}</p>
 					<button class="btn btn-success mt-auto" (click)="addToCart(plant)">
 						Ajouter au panier
 					</button>

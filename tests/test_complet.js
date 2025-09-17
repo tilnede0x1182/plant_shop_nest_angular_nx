@@ -192,6 +192,18 @@ async function testAuthRoles(adminToken, userToken) {
   return { success: true };
 }
 
+async function testAdminPlants(adminToken) {
+  console.log('\n📌 TEST MODULE: ADMIN PLANTS');
+  const plantes = await hit('GET', '/admin/plants', 200, null, adminToken);
+  console.log(`   ↳ ${plantes.length} plantes récupérées`);
+}
+
+async function testAdminUsers(adminToken) {
+  console.log('\n📌 TEST MODULE: ADMIN USERS');
+  const utilisateurs = await hit('GET', '/admin/users', 200, null, adminToken);
+  console.log(`   ↳ ${utilisateurs.length} utilisateurs récupérés`);
+}
+
 /* ---------- exécution des tests ---------- */
 async function main() {
   console.log(`🧪 Démarrage des tests: ${config.apiBaseUrl}\n`);
@@ -207,6 +219,8 @@ async function main() {
     await testUsers(adminToken);
     await testOrders(adminToken, userToken);
     await testAuthRoles(adminToken, userToken);
+    await testAdminPlants(adminToken);
+    await testAdminUsers(adminToken);
 
     console.log('\n🎉 Tous les tests ont réussi!');
     return 0;

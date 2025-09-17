@@ -26,15 +26,34 @@ export class RegisterComponent {
   onSubmit() {
     if (this.password !== this.passwordConfirmation) {
       this.message = '❌ Les mots de passe ne correspondent pas';
+      window.console.warn(
+        '[Register] mismatch',
+        this.password,
+        this.passwordConfirmation
+      );
       return;
     }
+
+    window.console.log('[Register] champs', {
+      name: this.name,
+      email: this.email,
+      password: this.password,
+      passwordConfirmation: this.passwordConfirmation,
+    });
 
     this.auth.register(this.email, this.password, this.name).subscribe({
       next: () => {
         this.message = 'Compte créé ✅';
+        window.console.log('[Register] succès', {
+          name: this.name,
+          email: this.email,
+        });
         this.router.navigate(['/login']);
       },
-      error: () => (this.message = '❌ Erreur lors de la création du compte'),
+      error: (err) => {
+        this.message = '❌ Erreur lors de la création du compte';
+        window.console.error('[Register] erreur', err);
+      },
     });
   }
 }

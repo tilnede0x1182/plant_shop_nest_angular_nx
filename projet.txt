@@ -12,10 +12,10 @@
 │   │   ├── src
 │   │   │   ├── app
 │   │   │   │   ├── admin
-│   │   │   │   │   ├── dashboard
-│   │   │   │   │   │   ├── dashboard.component.css
-│   │   │   │   │   │   ├── dashboard.component.html
-│   │   │   │   │   │   └── dashboard.component.ts
+│   │   │   │   │   ├── plants-list
+│   │   │   │   │   │   ├── plants-list.component.css
+│   │   │   │   │   │   ├── plants-list.component.html
+│   │   │   │   │   │   └── plants-list.component.ts
 │   │   │   │   │   └── users-list
 │   │   │   │   │       ├── users-list.component.css
 │   │   │   │   │       ├── users-list.component.html
@@ -21613,15 +21613,15 @@ export const appRoutes: Route[] = [
     path: 'admin/users',
     loadComponent: () =>
       import('./admin/users-list/users-list.component').then(
-        (m) => m.UsersListComponent
+        (m) => m.AdminUsersListComponent
       ),
     canActivate: [AdminGuard],
   },
   {
-    path: 'admin/dashboard',
+    path: 'admin/plants',
     loadComponent: () =>
-      import('./admin/dashboard/dashboard.component').then(
-        (m) => m.DashboardComponent
+      import('./admin/plants-list/plants-list.component').then(
+        (m) => m.AdminPlantsListComponent
       ),
     canActivate: [AdminGuard],
   },
@@ -21889,6 +21889,23 @@ export class ApiService {
   }
   supprimerCommande(id: number): Observable<void> {
     return this.http.delete<void>(`${this.base}/orders/${id}`);
+  }
+
+  /* ---------- Admin ---------- */
+  listerPlantesAdmin(): Observable<Plante[]> {
+    return this.http.get<Plante[]>(`${this.base}/admin/plants`);
+  }
+
+  supprimerPlanteAdmin(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.base}/admin/plants/${id}`);
+  }
+
+  listerUtilisateursAdmin(): Observable<Utilisateur[]> {
+    return this.http.get<Utilisateur[]>(`${this.base}/admin/users`);
+  }
+
+  supprimerUtilisateurAdmin(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.base}/admin/users/${id}`);
   }
 }
 

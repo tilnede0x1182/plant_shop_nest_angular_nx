@@ -3,6 +3,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { ApiService, Plante } from '../../services/api.service';
+import { AuthService } from '../../auth/auth.service';
 
 /**
  * Met à jour le panier dans localStorage et émet un event global
@@ -25,6 +26,7 @@ function ajouterAuPanierLocal(plante: Plante): void {
 })
 export class PlantsListComponent implements OnInit {
   private api = inject(ApiService);
+  private auth = inject(AuthService);
   protected plantes: Plante[] = [];
 
   /**
@@ -44,5 +46,9 @@ export class PlantsListComponent implements OnInit {
    */
   addToCart(plante: Plante): void {
     ajouterAuPanierLocal(plante);
+  }
+
+  get estAdmin(): boolean {
+    return this.auth.isAdmin();
   }
 }
