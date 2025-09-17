@@ -30,6 +30,7 @@
 │   │   │   │   ├── auth
 │   │   │   │   │   ├── admin.guard.ts
 │   │   │   │   │   ├── auth.guard.ts
+│   │   │   │   │   ├── auth.interceptor.ts
 │   │   │   │   │   ├── auth.service.ts
 │   │   │   │   │   ├── login
 │   │   │   │   │   │   ├── login.component.css
@@ -137,12 +138,14 @@
 │       │   │   │   ├── orders.module.ts
 │       │   │   │   └── orders.service.ts
 │       │   │   ├── plants
+│       │   │   │   ├── admin-plants.controller.ts
 │       │   │   │   ├── dto
 │       │   │   │   │   └── plant.dto.ts
 │       │   │   │   ├── plants.controller.ts
 │       │   │   │   ├── plants.module.ts
 │       │   │   │   └── plants.service.ts
 │       │   │   └── users
+│       │   │       ├── admin-users.controller.ts
 │       │   │       ├── dto
 │       │   │       │   └── user.dto.ts
 │       │   │       ├── users.controller.ts
@@ -187,7 +190,7 @@
 ├── users.txt
 └── vitest.workspace.ts
 
-47 directories, 138 files
+47 directories, 141 files
 
 # CONFIGURATION
 #
@@ -20822,6 +20825,35 @@ export class OrdersController {
 }
 
 
+## apps/plant_shop_nest/src/app/plants/admin-plants.controller.ts
+
+// # Importations
+import { Controller, Get, Delete, Param, UseGuards } from '@nestjs/common';
+import { PlantsService } from './plants.service';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
+
+// # Controller Admin Plants
+@Controller('admin/plants')
+@UseGuards(JwtAuthGuard, RolesGuard)
+export class AdminPlantsController {
+  constructor(private readonly plantsService: PlantsService) {}
+
+  @Get()
+  @Roles('admin')
+  findAll() {
+    return this.plantsService.findAll();
+  }
+
+  @Delete(':id')
+  @Roles('admin')
+  remove(@Param('id') id: string) {
+    return this.plantsService.remove(+id);
+  }
+}
+
+
 ## apps/plant_shop_nest/src/app/plants/plants.controller.ts
 
 // # Importations
@@ -20877,6 +20909,35 @@ export class PlantsController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.plantsService.remove(+id);
+  }
+}
+
+
+## apps/plant_shop_nest/src/app/users/admin-users.controller.ts
+
+// # Importations
+import { Controller, Get, Delete, Param, UseGuards } from '@nestjs/common';
+import { UsersService } from './users.service';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
+
+// # Controller Admin Users
+@Controller('admin/users')
+@UseGuards(JwtAuthGuard, RolesGuard)
+export class AdminUsersController {
+  constructor(private readonly usersService: UsersService) {}
+
+  @Get()
+  @Roles('admin')
+  findAll() {
+    return this.usersService.findAll();
+  }
+
+  @Delete(':id')
+  @Roles('admin')
+  remove(@Param('id') id: string) {
+    return this.usersService.remove(+id);
   }
 }
 
@@ -21471,13 +21532,14 @@ export class OrdersModule {}
 ## apps/plant_shop_nest/src/app/plants/plants.module.ts
 
 import { Module } from '@nestjs/common';
-import { PlantsController } from './plants.controller';
 import { PlantsService } from './plants.service';
+import { PlantsController } from './plants.controller';
+import { AdminPlantsController } from './admin-plants.controller';
 import { PrismaModule } from '../../prisma/prisma.module';
 
 @Module({
   imports: [PrismaModule],
-  controllers: [PlantsController],
+  controllers: [PlantsController, AdminPlantsController],
   providers: [PlantsService],
   exports: [PlantsService],
 })
@@ -21487,13 +21549,14 @@ export class PlantsModule {}
 ## apps/plant_shop_nest/src/app/users/users.module.ts
 
 import { Module } from '@nestjs/common';
-import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
+import { UsersController } from './users.controller';
+import { AdminUsersController } from './admin-users.controller';
 import { PrismaModule } from '../../prisma/prisma.module';
 
 @Module({
   imports: [PrismaModule],
-  controllers: [UsersController],
+  controllers: [UsersController, AdminUsersController],
   providers: [UsersService],
   exports: [UsersService],
 })
@@ -21520,12 +21583,18 @@ export const config = mergeApplicationConfig(appConfig, serverConfig);
 
 import { ApplicationConfig } from '@angular/core';
 import { provideRouter } from '@angular/router';
-import { provideHttpClient } from '@angular/common/http';
-
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { appRoutes as routes } from './app.routes';
+import { authInterceptor } from './auth/auth.interceptor';
 
+/**
+ * Enregistre les routes + HttpClient avec l'intercepteur d'auth
+ */
 export const appConfig: ApplicationConfig = {
-  providers: [provideRouter(routes), provideHttpClient()],
+  providers: [
+    provideRouter(routes),
+    provideHttpClient(withInterceptors([authInterceptor])),
+  ],
 };
 
 
