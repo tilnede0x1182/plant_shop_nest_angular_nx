@@ -1,30 +1,41 @@
 <div class="container mt-4">
-	<h2>👥 Gestion des utilisateurs</h2>
+	<h1 class="text-center mb-4">👥 Gestion des Utilisateurs</h1>
 
-	<table class="table table-striped table-bordered mt-3" *ngIf="users.length > 0">
-		<thead class="table-dark">
+	<div *ngIf="message" class="alert alert-info">{{ message }}</div>
+
+	<table class="table table-striped table-hover shadow-sm">
+		<thead class="table-light">
 			<tr>
-				<th>#</th>
-				<th>Email</th>
 				<th>Nom</th>
+				<th>Email</th>
 				<th>Admin</th>
-				<th></th>
+				<th class="text-center">Actions</th>
 			</tr>
 		</thead>
 		<tbody>
-			<tr *ngFor="let user of users">
-				<td>{{ user.id }}</td>
-				<td>{{ user.email }}</td>
-				<td>{{ user.name }}</td>
-				<td>{{ user.admin ? 'Oui' : 'Non' }}</td>
+			<tr *ngFor="let user of utilisateurs">
 				<td>
-					<button class="btn btn-sm btn-danger" (click)="supprimer(user.id)">Supprimer</button>
+					<a [routerLink]="['/users', user.id]" class="text-decoration-none text-dark">
+						{{ user.name }}
+					</a>
+				</td>
+				<td>{{ user.email }}</td>
+				<td>
+					<span class="badge" [ngClass]="user.admin ? 'bg-success' : 'bg-secondary'">
+						{{ user.admin ? 'Oui' : 'Non' }}
+					</span>
+				</td>
+				<td class="text-center">
+					<div class="d-flex justify-content-center gap-2">
+						<a [routerLink]="['/users', user.id, 'edit']" class="btn btn-warning btn-sm">
+							✏ Modifier
+						</a>
+						<button (click)="supprimerUtilisateur(user.id)" class="btn btn-danger btn-sm">
+							🗑 Supprimer
+						</button>
+					</div>
 				</td>
 			</tr>
 		</tbody>
 	</table>
-
-	<div *ngIf="users.length === 0" class="alert alert-info mt-3">
-		Aucun utilisateur trouvé.
-	</div>
 </div>

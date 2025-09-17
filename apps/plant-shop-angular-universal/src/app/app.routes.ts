@@ -80,15 +80,15 @@ export const appRoutes: Route[] = [
     path: 'admin/users',
     loadComponent: () =>
       import('./admin/users-list/users-list.component').then(
-        (m) => m.UsersListComponent
+        (m) => m.AdminUsersListComponent
       ),
     canActivate: [AdminGuard],
   },
   {
-    path: 'admin/dashboard',
+    path: 'admin/plants',
     loadComponent: () =>
-      import('./admin/dashboard/dashboard.component').then(
-        (m) => m.DashboardComponent
+      import('./admin/plants-list/plants-list.component').then(
+        (m) => m.AdminPlantsListComponent
       ),
     canActivate: [AdminGuard],
   },

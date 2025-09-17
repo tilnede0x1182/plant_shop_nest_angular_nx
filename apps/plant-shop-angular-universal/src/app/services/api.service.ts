@@ -74,4 +74,21 @@ export class ApiService {
   supprimerCommande(id: number): Observable<void> {
     return this.http.delete<void>(`${this.base}/orders/${id}`);
   }
+
+  /* ---------- Admin ---------- */
+  listerPlantesAdmin(): Observable<Plante[]> {
+    return this.http.get<Plante[]>(`${this.base}/admin/plants`);
+  }
+
+  supprimerPlanteAdmin(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.base}/admin/plants/${id}`);
+  }
+
+  listerUtilisateursAdmin(): Observable<Utilisateur[]> {
+    return this.http.get<Utilisateur[]>(`${this.base}/admin/users`);
+  }
+
+  supprimerUtilisateurAdmin(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.base}/admin/users/${id}`);
+  }
 }
