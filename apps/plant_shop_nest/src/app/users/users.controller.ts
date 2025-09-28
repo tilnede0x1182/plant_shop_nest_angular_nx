@@ -8,6 +8,8 @@ import {
   Param,
   Body,
   UseGuards,
+  Req,
+  ForbiddenException,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -27,11 +29,23 @@ export class UsersController {
     return this.usersService.findAll();
   }
 
-  // ✅ Réservé aux admins
-  @Roles('admin')
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.usersService.findOne(+id);
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  async findOne(@Param('id') id: string, @Req() req) {
+    const userId = +id;
+    const currentUser = req.user;
+
+    // Admin → accès OK
+    if (currentUser.admin) {
+      return this.usersService.findOne(userId);
+    }
+
+    // Utilisateur → accès seulement à son propre profil
+    if (currentUser.id === userId) {
+      return this.usersService.findOne(userId);
+    }
+
+    throw new ForbiddenException('Accès refusé');
   }
 
   // ✅ Accessible (register se fait déjà via AuthController),

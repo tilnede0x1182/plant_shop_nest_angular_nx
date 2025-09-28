@@ -88,11 +88,3 @@ export class PlantDetailComponent implements OnInit {
     });
   }
 }
-
-// # Main
-function main() {
-  /* composant Angular standalone, rien à exécuter ici */
-}
-
-// # Lancement du programme
-main();

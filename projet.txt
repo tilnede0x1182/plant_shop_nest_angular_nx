@@ -77,18 +77,23 @@
 │   │   │   │   │   │   ├── plant-detail.component.css
 │   │   │   │   │   │   ├── plant-detail.component.html
 │   │   │   │   │   │   └── plant-detail.component.ts
-│   │   │   │   │   ├── plant-form
-│   │   │   │   │   │   ├── plant-form.component.css
-│   │   │   │   │   │   ├── plant-form.component.html
-│   │   │   │   │   │   └── plant-form.component.ts
+│   │   │   │   │   ├── plant-new
+│   │   │   │   │   │   ├── plant-new.component.css
+│   │   │   │   │   │   ├── plant-new.component.html
+│   │   │   │   │   │   └── plant-new.component.ts
 │   │   │   │   │   └── plants-list
 │   │   │   │   │       ├── plants-list.component.css
 │   │   │   │   │       ├── plants-list.component.html
 │   │   │   │   │       └── plants-list.component.ts
-│   │   │   │   └── services
-│   │   │   │       ├── api.service.ts
-│   │   │   │       ├── api.spec.ts
-│   │   │   │       └── api.ts
+│   │   │   │   ├── services
+│   │   │   │   │   ├── api.service.ts
+│   │   │   │   │   ├── api.spec.ts
+│   │   │   │   │   └── api.ts
+│   │   │   │   └── users
+│   │   │   │       └── user-profile
+│   │   │   │           ├── user-profile.component.css
+│   │   │   │           ├── user-profile.component.html
+│   │   │   │           └── user-profile.component.ts
 │   │   │   ├── index.html
 │   │   │   ├── main.server.ts
 │   │   │   ├── main.ts
@@ -190,7 +195,7 @@
 ├── users.txt
 └── vitest.workspace.ts
 
-47 directories, 141 files
+49 directories, 144 files
 
 # CONFIGURATION
 #
@@ -21632,19 +21637,18 @@ export const appRoutes: Route[] = [
       ),
   },
   {
+    path: 'plants/new',
+    loadComponent: () =>
+      import('./plants/plant-new/plant-new.component').then(
+        (m) => m.PlantFormComponent
+      ),
+  },
+  {
     path: 'plants/:id',
     loadComponent: () =>
       import('./plants/plant-detail/plant-detail.component').then(
         (m) => m.PlantDetailComponent
       ),
-  },
-  {
-    path: 'plants/new',
-    loadComponent: () =>
-      import('./plants/plant-form/plant-form.component').then(
-        (m) => m.PlantFormComponent
-      ),
-    canActivate: [AuthGuard],
   },
 
   // 👤 Auth
@@ -21668,20 +21672,22 @@ export const appRoutes: Route[] = [
       import('./cart/cart/cart.component').then((m) => m.CartComponent),
   },
 
+  // 👤 Profil
+  {
+    path: 'profile',
+    loadComponent: () =>
+      import('./users/user-profile/user-profile.component').then(
+        (m) => m.UserProfileComponent
+      ),
+    canActivate: [AuthGuard],
+  },
+
   // 📦 Commandes
   {
     path: 'orders/new',
     loadComponent: () =>
       import('./orders/order-new/order-new.component').then(
         (m) => m.OrderNewComponent
-      ),
-    canActivate: [AuthGuard],
-  },
-  {
-    path: 'orders/:id',
-    loadComponent: () =>
-      import('./orders/order-detail/order-detail.component').then(
-        (m) => m.OrderDetailComponent
       ),
     canActivate: [AuthGuard],
   },
@@ -21693,7 +21699,14 @@ export const appRoutes: Route[] = [
       ),
     canActivate: [AuthGuard],
   },
-
+  {
+    path: 'orders/:id',
+    loadComponent: () =>
+      import('./orders/order-detail/order-detail.component').then(
+        (m) => m.OrderDetailComponent
+      ),
+    canActivate: [AuthGuard],
+  },
   // ⚙️ Admin
   {
     path: 'admin/users',
@@ -21922,8 +21935,14 @@ export type Utilisateur = {
 export type Commande = {
   id: number;
   userId: number;
-  status: string;
-  items: any[];
+  status: string | null;
+  totalPrice: number | null;
+  createdAt: string;
+  orderItems: {
+    id: number;
+    quantity: number;
+    plant: Plante;
+  }[];
 };
 
 // # Service API
@@ -21940,6 +21959,7 @@ export class ApiService {
     return this.http.get<Plante>(`${this.base}/plants/${id}`);
   }
   creerPlante(data: Partial<Plante>): Observable<Plante> {
+    console.log('[API CALL] POST /plants avec', data);
     return this.http.post<Plante>(`${this.base}/plants`, data);
   }
   majPlante(id: number, data: Partial<Plante>): Observable<Plante> {
@@ -21958,6 +21978,11 @@ export class ApiService {
   }
   supprimerUtilisateur(id: number): Observable<void> {
     return this.http.delete<void>(`${this.base}/users/${id}`);
+  }
+  getMe(): Observable<{ name: string; email: string }> {
+    return this.http.get<{ name: string; email: string }>(
+      `${this.base}/users/me`
+    );
   }
 
   /* ---------- Commandes ---------- */

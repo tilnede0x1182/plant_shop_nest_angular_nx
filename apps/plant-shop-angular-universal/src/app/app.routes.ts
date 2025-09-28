@@ -14,11 +14,10 @@ export const appRoutes: Route[] = [
   },
   {
     path: 'plants/new',
-    loadComponent: () => {
-      return import('./plants/plant-form/plant-form.component').then(
+    loadComponent: () =>
+      import('./plants/plant-new/plant-new.component').then(
         (m) => m.PlantFormComponent
-      );
-    },
+      ),
   },
   {
     path: 'plants/:id',
@@ -47,6 +46,16 @@ export const appRoutes: Route[] = [
     path: 'cart',
     loadComponent: () =>
       import('./cart/cart/cart.component').then((m) => m.CartComponent),
+  },
+
+  // 👤 Profil
+  {
+    path: 'profile',
+    loadComponent: () =>
+      import('./users/user-profile/user-profile.component').then(
+        (m) => m.UserProfileComponent
+      ),
+    canActivate: [AuthGuard],
   },
 
   // 📦 Commandes
