@@ -51,9 +51,14 @@ export class NavbarComponent implements OnInit {
 
   /**
    * Déconnexion standard
+   * - supprime token + utilisateur côté AuthService (déjà)
+   * - vide l'état local immédiatement pour mise à jour UI instantanée
    */
   logout(): void {
     this.auth.logout();
+    // vider l'état local pour ne plus afficher le nom après logout
+    this.userName = '';
+    this.userId = null;
     this.router.navigate(['/']);
   }
 
@@ -63,11 +68,10 @@ export class NavbarComponent implements OnInit {
    */
   private hydraterUtilisateurDepuisStorage(): void {
     if (typeof window === 'undefined') return;
+    // clé canonicalisée utilisée par AuthService
     const brut =
-      localStorage.getItem('user') ||
-      sessionStorage.getItem('user') ||
-      localStorage.getItem('currentUser') ||
-      sessionStorage.getItem('currentUser');
+      localStorage.getItem('current_user') ||
+      sessionStorage.getItem('current_user');
     if (!brut) return;
     try {
       const u = JSON.parse(brut);

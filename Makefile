@@ -21,3 +21,9 @@ prod:
 
 typage:
 	npx tsc --noEmit
+
+seed:
+	npx prisma db seed
+
+lint:
+	npm run lint
