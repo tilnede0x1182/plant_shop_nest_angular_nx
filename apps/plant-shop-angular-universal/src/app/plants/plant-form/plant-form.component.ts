@@ -16,12 +16,15 @@ export class PlantFormComponent {
     name: string;
     price: number;
     stock: number;
+    description: string;
   }>();
 
-  model = { name: '', price: 0, stock: 0 };
+  model = { name: '', price: 0, stock: 0, description: '' };
 
   onSubmit() {
+    console.log('[FORM] Soumission du formulaire avec :', this.model);
     this.submitPlant.emit(this.model);
-    this.model = { name: '', price: 0, stock: 0 }; // reset après submit
+    this.model = { name: '', price: 0, stock: 0, description: '' };
+    console.log('[FORM] Reset du modèle, prêt pour nouvelle saisie');
   }
 }

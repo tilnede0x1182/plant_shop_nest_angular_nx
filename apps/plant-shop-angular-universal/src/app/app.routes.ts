@@ -13,19 +13,19 @@ export const appRoutes: Route[] = [
       ),
   },
   {
+    path: 'plants/new',
+    loadComponent: () => {
+      return import('./plants/plant-form/plant-form.component').then(
+        (m) => m.PlantFormComponent
+      );
+    },
+  },
+  {
     path: 'plants/:id',
     loadComponent: () =>
       import('./plants/plant-detail/plant-detail.component').then(
         (m) => m.PlantDetailComponent
       ),
-  },
-  {
-    path: 'plants/new',
-    loadComponent: () =>
-      import('./plants/plant-form/plant-form.component').then(
-        (m) => m.PlantFormComponent
-      ),
-    canActivate: [AuthGuard],
   },
 
   // 👤 Auth
@@ -59,14 +59,6 @@ export const appRoutes: Route[] = [
     canActivate: [AuthGuard],
   },
   {
-    path: 'orders/:id',
-    loadComponent: () =>
-      import('./orders/order-detail/order-detail.component').then(
-        (m) => m.OrderDetailComponent
-      ),
-    canActivate: [AuthGuard],
-  },
-  {
     path: 'orders',
     loadComponent: () =>
       import('./orders/order-list/order-list.component').then(
@@ -74,7 +66,14 @@ export const appRoutes: Route[] = [
       ),
     canActivate: [AuthGuard],
   },
-
+  {
+    path: 'orders/:id',
+    loadComponent: () =>
+      import('./orders/order-detail/order-detail.component').then(
+        (m) => m.OrderDetailComponent
+      ),
+    canActivate: [AuthGuard],
+  },
   // ⚙️ Admin
   {
     path: 'admin/users',

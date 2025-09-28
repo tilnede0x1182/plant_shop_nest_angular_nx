@@ -30,7 +30,6 @@ export type Commande = {
   }[];
 };
 
-
 // # Service API
 @Injectable({ providedIn: 'root' })
 export class ApiService {
