@@ -8,9 +8,10 @@
 		<div class="collapse navbar-collapse" id="navbarNav">
 			<ul class="navbar-nav ms-auto">
 
-				<!-- Nom utilisateur + (Administrateur) -->
-				<li class="nav-item d-flex align-items-center text-white me-3" *ngIf="userName">
-					{{ userName }}<span *ngIf="estAdmin"> (Administrateur)</span>
+				<!-- Nom utilisateur — affiché pour tout utilisateur connecté (admin ou non) -->
+				<li class="nav-item d-flex align-items-center text-white me-3" *ngIf="estConnecte && userName">
+					{{ userName }}
+					<span *ngIf="estAdmin">&nbsp;(Administrateur)</span>
 				</li>
 
 				<!-- Panier -->
