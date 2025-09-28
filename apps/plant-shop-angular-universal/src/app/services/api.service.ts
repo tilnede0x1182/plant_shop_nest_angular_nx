@@ -20,9 +20,16 @@ export type Utilisateur = {
 export type Commande = {
   id: number;
   userId: number;
-  status: string;
-  items: any[];
+  status: string | null;
+  totalPrice: number | null;
+  createdAt: string;
+  orderItems: {
+    id: number;
+    quantity: number;
+    plant: Plante;
+  }[];
 };
+
 
 // # Service API
 @Injectable({ providedIn: 'root' })
