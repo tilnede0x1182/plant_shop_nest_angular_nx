@@ -33,9 +33,3 @@ export class OrderListComponent implements OnInit {
     return formaterDate(dateIso);
   }
 }
-
-// # Main
-function main() {}
-
-// # Lancement du programme
-main();

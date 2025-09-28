@@ -1,0 +1,18 @@
+<div class="container mt-4" *ngIf="user">
+	<h2>👤 Mon Profil</h2>
+
+	<p><strong>Nom :</strong> {{ user.name }}</p>
+	<p><strong>Email :</strong> {{ user.email }}</p>
+
+	<div *ngIf="user.admin" class="alert alert-info p-2">
+		✅ Administrateur
+	</div>
+
+	<a [routerLink]="['/users', user.id, 'edit']" class="btn btn-primary">
+		Modifier mon profil
+	</a>
+</div>
+
+<div *ngIf="!user" class="container mt-4">
+	<p class="alert alert-warning">Chargement du profil...</p>
+</div>

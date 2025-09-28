@@ -5,11 +5,11 @@ import { FormsModule } from '@angular/forms';
 
 // # Composant PlantForm (admin)
 @Component({
-  selector: 'app-plant-form',
+  selector: 'app-plant-new',
   standalone: true,
   imports: [CommonModule, FormsModule],
-  templateUrl: './plant-form.component.html',
-  styleUrls: ['./plant-form.component.css'],
+  templateUrl: './plant-new.component.html',
+  styleUrls: ['./plant-new.component.css'],
 })
 export class PlantFormComponent {
   @Output() submitPlant = new EventEmitter<{
@@ -22,9 +22,13 @@ export class PlantFormComponent {
   model = { name: '', price: 0, stock: 0, description: '' };
 
   onSubmit() {
-    console.log('[FORM] Soumission du formulaire avec :', this.model);
+    console.log('[FORM] Bouton Créer cliqué');
+    console.log('[FORM] Modèle courant =', this.model);
+
     this.submitPlant.emit(this.model);
+    console.log('[FORM] EventEmitter déclenché avec =', this.model);
+
     this.model = { name: '', price: 0, stock: 0, description: '' };
-    console.log('[FORM] Reset du modèle, prêt pour nouvelle saisie');
+    console.log('[FORM] Modèle réinitialisé');
   }
 }

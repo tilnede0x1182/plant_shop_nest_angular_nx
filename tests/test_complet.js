@@ -59,7 +59,7 @@ function assertEq(obj, key, expected) {
     );
 }
 
-/* ---------- helpers auth ---------- */
+/* ------------ helpers  ------------ */
 async function login(email, password) {
   const { access_token } = await hit('POST', '/auth/login', 201, {
     email,
@@ -71,6 +71,13 @@ async function login(email, password) {
 async function registerUser(name, email, password) {
   await hit('POST', '/auth/register', 201, { name, email, password });
   return login(email, password);
+}
+
+async function findUserIdByEmail(adminToken, email) {
+  const users = await hit('GET', '/users', 200, null, adminToken);
+  const u = users.find((usr) => usr.email === email);
+  if (!u) throw new Error(`User ${email} not found in admin list`);
+  return u.id;
 }
 
 /* ---------- modules de test ---------- */
@@ -164,6 +171,16 @@ async function testOrders(adminToken, userToken) {
   return { success: true };
 }
 
+async function testUserProfile(adminToken, userToken, userEmail) {
+  console.log('\n📌 TEST MODULE: USER PROFILE (user)');
+  const userId = await findUserIdByEmail(adminToken, userEmail);
+  assertEq(
+    await hit('GET', `/users/${userId}`, 200, null, userToken),
+    'id',
+    userId
+  );
+}
+
 async function testAuthRoles(adminToken, userToken) {
   console.log('\n📌 TEST MODULE: ROLES');
 
@@ -218,6 +235,7 @@ async function main() {
     await testUsers(adminToken);
     await testUsers(adminToken);
     await testOrders(adminToken, userToken);
+    await testUserProfile(adminToken, userToken, userEmail);
     await testAuthRoles(adminToken, userToken);
     await testAdminPlants(adminToken);
     await testAdminUsers(adminToken);
