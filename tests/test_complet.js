@@ -174,11 +174,27 @@ async function testOrders(adminToken, userToken) {
 async function testUserProfile(adminToken, userToken, userEmail) {
   console.log('\n📌 TEST MODULE: USER PROFILE (user)');
   const userId = await findUserIdByEmail(adminToken, userEmail);
+
+  // L’utilisateur peut consulter son profil
   assertEq(
     await hit('GET', `/users/${userId}`, 200, null, userToken),
     'id',
     userId
   );
+
+  // L’utilisateur peut mettre à jour son propre profil
+  const nouveauNom = `UserModif-${Date.now()}`;
+  await hit('PATCH', `/users/${userId}`, 200, { name: nouveauNom }, userToken);
+  assertEq(
+    await hit('GET', `/users/${userId}`, 200, null, userToken),
+    'name',
+    nouveauNom
+  );
+
+  // Vérif sécurité : il ne peut pas se donner admin
+  await hit('PATCH', `/users/${userId}`, 200, { admin: true }, userToken);
+  const profil = await hit('GET', `/users/${userId}`, 200, null, adminToken);
+  assertEq(profil, 'admin', false);
 }
 
 async function testAuthRoles(adminToken, userToken) {
