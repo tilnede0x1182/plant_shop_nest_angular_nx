@@ -57,6 +57,14 @@ export const appRoutes: Route[] = [
       ),
     canActivate: [AuthGuard],
   },
+  {
+    path: 'profile/edit',
+    loadComponent: () =>
+      import('./admin/users/user-profile-edit/user-profile-edit.component').then(
+        (m) => m.UserProfileEditComponent
+      ),
+    canActivate: [AuthGuard],
+  },
 
   // 📦 Commandes
   {
@@ -87,7 +95,7 @@ export const appRoutes: Route[] = [
   {
     path: 'admin/users',
     loadComponent: () =>
-      import('./admin/users-list/users-list.component').then(
+      import('./admin/users/users-list/users-list.component').then(
         (m) => m.AdminUsersListComponent
       ),
     canActivate: [AdminGuard],
@@ -95,7 +103,7 @@ export const appRoutes: Route[] = [
   {
     path: 'admin/plants',
     loadComponent: () =>
-      import('./admin/plants-list/plants-list.component').then(
+      import('./admin/plants/plants-list/plants-list.component').then(
         (m) => m.AdminPlantsListComponent
       ),
     canActivate: [AdminGuard],

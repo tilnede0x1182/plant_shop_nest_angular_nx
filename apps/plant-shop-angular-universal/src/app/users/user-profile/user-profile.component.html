@@ -5,10 +5,10 @@
 	<p><strong>Email :</strong> {{ user.email }}</p>
 
 	<div *ngIf="user.admin" class="alert alert-info p-2">
-		✅ Administrateur
+		Administrateur
 	</div>
 
-	<a [routerLink]="['/users', user.id, 'edit']" class="btn btn-primary">
+	<a *ngIf="user" [routerLink]="['/admin/users', user.id, 'edit']" class="btn btn-primary">
 		Modifier mon profil
 	</a>
 </div>
