@@ -3,17 +3,17 @@ import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
-import { ApiService, Utilisateur } from '../../../services/api.service';
+import { ApiService, Utilisateur } from '../../services/api.service';
 
 // # Données
 @Component({
   standalone: true,
-  selector: 'app-user-edit',
+  selector: 'app-user-profile-edit',
   imports: [CommonModule, FormsModule],
   templateUrl: './user-profile-edit.component.html',
   styleUrls: ['./user-profile-edit.component.css'],
 })
-export class AdminUserEditComponent {
+export class UserProfileEditComponent {
   private api = inject(ApiService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
@@ -22,7 +22,7 @@ export class AdminUserEditComponent {
   protected erreurs: string[] = [];
 
   /**
-   * Charge l'utilisateur ciblé par l'URL
+   * Charge le profil à éditer (utilisateur courant via :id de l'URL)
    */
   ngOnInit() {
     const userId = Number(this.route.snapshot.paramMap.get('id'));
@@ -32,21 +32,20 @@ export class AdminUserEditComponent {
     }
     this.api.unUtilisateur(userId).subscribe({
       next: (data) => (this.user = data),
-      error: () => (this.erreurs = ['Chargement utilisateur impossible']),
+      error: () => (this.erreurs = ['Impossible de charger vos données']),
     });
   }
 
   /**
-   * Soumet les changements (admin peut cocher/décocher admin)
+   * Soumet Nom/Email uniquement (pas de case Admin côté non-admin)
    */
   enregistrer() {
     const payload: Partial<Utilisateur> = {
       name: this.user.name,
       email: this.user.email,
-      admin: this.user.admin,
     };
-    this.api.majUtilisateurAdmin(this.user.id, payload).subscribe({
-      next: () => this.router.navigate(['/admin/users']),
+    this.api.majProfile(this.user.id, payload).subscribe({
+      next: () => this.router.navigate(['/profile']),
       error: () => (this.erreurs = ['Erreur lors de la mise à jour']),
     });
   }

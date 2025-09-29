@@ -47,11 +47,14 @@ export class ApiService {
     console.log('[API CALL] POST /plants avec', data);
     return this.http.post<Plante>(`${this.base}/plants`, data);
   }
-  majPlante(id: number, data: Partial<Plante>): Observable<Plante> {
+  majPlanteAdmin(id: number, data: Partial<Plante>): Observable<Plante> {
     return this.http.patch<Plante>(`${this.base}/admin/plants/${id}`, data);
   }
-  supprimerPlante(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.base}/plants/${id}`);
+  listerPlantesAdmin(): Observable<Plante[]> {
+    return this.http.get<Plante[]>(`${this.base}/admin/plants`);
+  }
+  supprimerPlanteAdmin(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.base}/admin/plants/${id}`);
   }
 
   /* ---------- Utilisateurs ---------- */
@@ -61,14 +64,20 @@ export class ApiService {
   unUtilisateur(id: number): Observable<Utilisateur> {
     return this.http.get<Utilisateur>(`${this.base}/users/${id}`);
   }
-  majUtilisateur(
+  majProfile(id: number, data: Partial<Utilisateur>): Observable<Utilisateur> {
+    return this.http.patch<Utilisateur>(`${this.base}/users/${id}`, data);
+  }
+  majUtilisateurAdmin(
     id: number,
     data: Partial<Utilisateur>
   ): Observable<Utilisateur> {
     return this.http.patch<Utilisateur>(`${this.base}/admin/users/${id}`, data);
   }
-  supprimerUtilisateur(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.base}/users/${id}`);
+  listerUtilisateursAdmin(): Observable<Utilisateur[]> {
+    return this.http.get<Utilisateur[]>(`${this.base}/admin/users`);
+  }
+  supprimerUtilisateurAdmin(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.base}/admin/users/${id}`);
   }
 
   /* ---------- Commandes ---------- */
@@ -86,22 +95,5 @@ export class ApiService {
   }
   supprimerCommande(id: number): Observable<void> {
     return this.http.delete<void>(`${this.base}/orders/${id}`);
-  }
-
-  /* ---------- Admin ---------- */
-  listerPlantesAdmin(): Observable<Plante[]> {
-    return this.http.get<Plante[]>(`${this.base}/admin/plants`);
-  }
-
-  supprimerPlanteAdmin(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.base}/admin/plants/${id}`);
-  }
-
-  listerUtilisateursAdmin(): Observable<Utilisateur[]> {
-    return this.http.get<Utilisateur[]>(`${this.base}/admin/users`);
-  }
-
-  supprimerUtilisateurAdmin(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.base}/admin/users/${id}`);
   }
 }

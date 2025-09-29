@@ -94,10 +94,14 @@
 │   │   │   │   │   ├── api.service.ts
 │   │   │   │   │   └── api.spec.ts
 │   │   │   │   └── users
-│   │   │   │       └── user-profile
-│   │   │   │           ├── user-profile.component.css
-│   │   │   │           ├── user-profile.component.html
-│   │   │   │           └── user-profile.component.ts
+│   │   │   │       ├── user-profile
+│   │   │   │       │   ├── user-profile.component.css
+│   │   │   │       │   ├── user-profile.component.html
+│   │   │   │       │   └── user-profile.component.ts
+│   │   │   │       └── user-profile-edit
+│   │   │   │           ├── user-profile-edit.component.css
+│   │   │   │           ├── user-profile-edit.component.html
+│   │   │   │           └── user-profile-edit.component.ts
 │   │   │   ├── index.html
 │   │   │   ├── main.server.ts
 │   │   │   ├── main.ts
@@ -199,7 +203,7 @@
 ├── users.txt
 └── vitest.workspace.ts
 
-53 directories, 144 files
+54 directories, 147 files
 
 # CONFIGURATION
 #
@@ -21702,8 +21706,16 @@ export const appRoutes: Route[] = [
   {
     path: 'profile/edit',
     loadComponent: () =>
-      import('./admin/users/user-profile-edit/user-profile-edit.component').then(
-        (m) => m.UserProfileEditComponent
+      import(
+        './admin/users/user-profile-edit/user-profile-edit.component'
+      ).then((m) => m.UserProfileEditComponent),
+    canActivate: [AuthGuard],
+  },
+  {
+    path: 'amdin/users/:id/edit',
+    loadComponent: () =>
+      import('./users/user-profile-edit/user-profile-edit.component').then(
+        (m) => m.PlantsEditComponent
       ),
     canActivate: [AuthGuard],
   },
@@ -21743,10 +21755,26 @@ export const appRoutes: Route[] = [
     canActivate: [AdminGuard],
   },
   {
+    path: 'admin/users/:id/edit',
+    loadComponent: () =>
+      import(
+        './admin/users/user-profile-edit/user-profile-edit.component'
+      ).then((m) => m.AdminUserEditComponent),
+    canActivate: [AdminGuard],
+  },
+  {
     path: 'admin/plants',
     loadComponent: () =>
       import('./admin/plants/plants-list/plants-list.component').then(
         (m) => m.AdminPlantsListComponent
+      ),
+    canActivate: [AdminGuard],
+  },
+  {
+    path: 'admin/plants/:id/edit',
+    loadComponent: () =>
+      import('./admin/plants/plants-edit/plants-edit.component').then(
+        (m) => m.PlantsEditComponent
       ),
     canActivate: [AdminGuard],
   },

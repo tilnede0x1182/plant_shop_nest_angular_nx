@@ -35,7 +35,7 @@ export class PlantsEditComponent implements OnInit {
   }
 
   onSubmit() {
-    this.api.majPlante(this.plante.id, this.plante).subscribe({
+    this.api.majPlanteAdmin(this.plante.id, this.plante).subscribe({
       next: () => this.router.navigate(['/admin/plants']),
       error: (res: any) =>
         (this.erreurs = res.error?.errors || ['Erreur de mise à jour.']),
