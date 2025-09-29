@@ -12,14 +12,20 @@
 │   │   ├── src
 │   │   │   ├── app
 │   │   │   │   ├── admin
-│   │   │   │   │   ├── plants-list
-│   │   │   │   │   │   ├── plants-list.component.css
-│   │   │   │   │   │   ├── plants-list.component.html
-│   │   │   │   │   │   └── plants-list.component.ts
-│   │   │   │   │   └── users-list
-│   │   │   │   │       ├── users-list.component.css
-│   │   │   │   │       ├── users-list.component.html
-│   │   │   │   │       └── users-list.component.ts
+│   │   │   │   │   ├── plants
+│   │   │   │   │   │   └── plants-list
+│   │   │   │   │   │       ├── plants-list.component.css
+│   │   │   │   │   │       ├── plants-list.component.html
+│   │   │   │   │   │       └── plants-list.component.ts
+│   │   │   │   │   └── users
+│   │   │   │   │       ├── user-profile-edit
+│   │   │   │   │       │   ├── user-profile-edit.component.css
+│   │   │   │   │       │   ├── user-profile-edit.component.html
+│   │   │   │   │       │   └── user-profile-edit.component.ts
+│   │   │   │   │       └── users-list
+│   │   │   │   │           ├── users-list.component.css
+│   │   │   │   │           ├── users-list.component.html
+│   │   │   │   │           └── users-list.component.ts
 │   │   │   │   ├── app.config.server.ts
 │   │   │   │   ├── app.config.ts
 │   │   │   │   ├── app.css
@@ -195,7 +201,7 @@
 ├── users.txt
 └── vitest.workspace.ts
 
-49 directories, 144 files
+52 directories, 147 files
 
 # CONFIGURATION
 #
@@ -20977,6 +20983,8 @@ import {
   Param,
   Body,
   UseGuards,
+  Req,
+  ForbiddenException,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -20996,11 +21004,23 @@ export class UsersController {
     return this.usersService.findAll();
   }
 
-  // ✅ Réservé aux admins
-  @Roles('admin')
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.usersService.findOne(+id);
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  async findOne(@Param('id') id: string, @Req() req) {
+    const userId = +id;
+    const currentUser = req.user;
+
+    // Admin → accès OK
+    if (currentUser.admin) {
+      return this.usersService.findOne(userId);
+    }
+
+    // Utilisateur → accès seulement à son propre profil
+    if (currentUser.id === userId) {
+      return this.usersService.findOne(userId);
+    }
+
+    throw new ForbiddenException('Accès refusé');
   }
 
   // ✅ Accessible (register se fait déjà via AuthController),
@@ -21681,6 +21701,14 @@ export const appRoutes: Route[] = [
       ),
     canActivate: [AuthGuard],
   },
+  {
+    path: 'profile/edit',
+    loadComponent: () =>
+      import('./users/user-profile-edit/user-profile-edit.component').then(
+        (m) => m.UserProfileEditComponent
+      ),
+    canActivate: [AuthGuard],
+  },
 
   // 📦 Commandes
   {
@@ -21711,7 +21739,7 @@ export const appRoutes: Route[] = [
   {
     path: 'admin/users',
     loadComponent: () =>
-      import('./admin/users-list/users-list.component').then(
+      import('./admin/users/users-list/users-list.component').then(
         (m) => m.AdminUsersListComponent
       ),
     canActivate: [AdminGuard],
@@ -21719,7 +21747,7 @@ export const appRoutes: Route[] = [
   {
     path: 'admin/plants',
     loadComponent: () =>
-      import('./admin/plants-list/plants-list.component').then(
+      import('./admin/plants/plants-list/plants-list.component').then(
         (m) => m.AdminPlantsListComponent
       ),
     canActivate: [AdminGuard],
@@ -21976,13 +22004,14 @@ export class ApiService {
   unUtilisateur(id: number): Observable<Utilisateur> {
     return this.http.get<Utilisateur>(`${this.base}/users/${id}`);
   }
+  majUtilisateur(
+    id: number,
+    data: Partial<Utilisateur>
+  ): Observable<Utilisateur> {
+    return this.http.patch<Utilisateur>(`${this.base}/users/${id}`, data);
+  }
   supprimerUtilisateur(id: number): Observable<void> {
     return this.http.delete<void>(`${this.base}/users/${id}`);
-  }
-  getMe(): Observable<{ name: string; email: string }> {
-    return this.http.get<{ name: string; email: string }>(
-      `${this.base}/users/me`
-    );
   }
 
   /* ---------- Commandes ---------- */

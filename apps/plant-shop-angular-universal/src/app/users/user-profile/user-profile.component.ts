@@ -1,11 +1,9 @@
-// # Importations
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute } from '@angular/router';
 import { ApiService, Utilisateur } from '../../services/api.service';
+import { AuthService } from '../../auth/auth.service';
 import { RouterModule } from '@angular/router';
 
-// # Composant Profil utilisateur
 @Component({
   standalone: true,
   selector: 'app-user-profile',
@@ -15,17 +13,16 @@ import { RouterModule } from '@angular/router';
 })
 export class UserProfileComponent {
   private api = inject(ApiService);
-  private route = inject(ActivatedRoute);
+  private auth = inject(AuthService);
 
   protected user: Utilisateur | null = null;
 
   ngOnInit() {
-    const id = Number(this.route.snapshot.paramMap.get('id'));
-    this.api.unUtilisateur(id).subscribe((data) => (this.user = data));
-  }
+    const currentUser = this.auth.getUser();
+    if (!currentUser) return;
 
-  modifier() {
-    // TODO : naviguer vers /users/:id/edit
-    alert('Redirection édition profil à implémenter');
+    this.api
+      .unUtilisateur(currentUser.id)
+      .subscribe((data) => (this.user = data));
   }
 }

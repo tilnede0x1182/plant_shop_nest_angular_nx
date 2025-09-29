@@ -2,7 +2,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { ApiService } from '../../services/api.service';
+import { ApiService } from '../../../services/api.service';
 
 /**
  * AdminPlantsListComponent – Liste des plantes (admin)

@@ -61,6 +61,12 @@ export class ApiService {
   unUtilisateur(id: number): Observable<Utilisateur> {
     return this.http.get<Utilisateur>(`${this.base}/users/${id}`);
   }
+  majUtilisateur(
+    id: number,
+    data: Partial<Utilisateur>
+  ): Observable<Utilisateur> {
+    return this.http.patch<Utilisateur>(`${this.base}/users/${id}`, data);
+  }
   supprimerUtilisateur(id: number): Observable<void> {
     return this.http.delete<void>(`${this.base}/users/${id}`);
   }
