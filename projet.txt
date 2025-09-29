@@ -21694,11 +21694,12 @@ export const appRoutes: Route[] = [
       ),
   },
   {
-    path: 'plants/new',
+    path: 'admin/plants/new',
     loadComponent: () =>
-      import('./plants/plant-new/plant-new.component').then(
-        (m) => m.PlantFormComponent
+      import('./admin/plants/plant-new/plant-new.component').then(
+        (m) => m.PlantNewComponent
       ),
+    canActivate: [AdminGuard],
   },
   {
     path: 'plants/:id',
