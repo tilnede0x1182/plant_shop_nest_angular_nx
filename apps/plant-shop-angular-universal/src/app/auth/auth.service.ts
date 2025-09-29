@@ -52,11 +52,16 @@ export class AuthService {
   /** Logout */
   logout() {
     localStorage.removeItem(this.tokenKey);
+    localStorage.removeItem(this.userKey);
   }
 
   /** Vérifier si connecté */
   isAuthenticated(): boolean {
-    return !!localStorage.getItem(this.tokenKey);
+    const token = localStorage.getItem(this.tokenKey);
+    const user = this.getUser();
+    const res = !!token && !!user;
+    console.log('[AuthService FRONT] isAuthenticated →', res, { token, user });
+    return res;
   }
 
   /** Récupérer le token */
@@ -70,7 +75,21 @@ export class AuthService {
   }
 
   isAdmin(): boolean {
-    return this.getUser()?.admin === true;
+    console.log('[AuthService FRONT] Vérification isAdmin()');
+
+    const user = this.getUser();
+    console.log('[AuthService FRONT] état interne user =', user);
+
+    if (!user) {
+      console.log('[AuthService FRONT] Pas connecté → isAdmin=false');
+      return false;
+    }
+
+    const resultat = user.admin === true;
+    console.log(
+      `[AuthService FRONT] email=${user.email}, admin=${user.admin} → isAdmin=${resultat}`
+    );
+    return resultat;
   }
 
   /** Stocker le token */
