@@ -1,5 +1,14 @@
 // # Importations
-import { Controller, Get, Delete, Param, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Delete,
+  Param,
+  UseGuards,
+  Post,
+  Patch,
+  Body,
+} from '@nestjs/common';
 import { PlantsService } from './plants.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
@@ -15,6 +24,18 @@ export class AdminPlantsController {
   @Roles('admin')
   findAll() {
     return this.plantsService.findAll();
+  }
+
+  @Post()
+  @Roles('admin')
+  create(@Body() data: any) {
+    return this.plantsService.create(data);
+  }
+
+  @Patch(':id')
+  @Roles('admin')
+  update(@Param('id') id: string, @Body() data: any) {
+    return this.plantsService.update(+id, data);
   }
 
   @Delete(':id')
