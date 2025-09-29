@@ -213,12 +213,69 @@ async function testAdminPlants(adminToken) {
   console.log('\n📌 TEST MODULE: ADMIN PLANTS');
   const plantes = await hit('GET', '/admin/plants', 200, null, adminToken);
   console.log(`   ↳ ${plantes.length} plantes récupérées`);
+
+  // --- Test POST /admin/plants ---
+  const planteAdmin = {
+    name: `AdminTestPlant-${Date.now()}`,
+    price: 99,
+    stock: 12,
+  };
+  const { id: planteAdminId } = await hit(
+    'POST',
+    '/admin/plants',
+    201,
+    planteAdmin,
+    adminToken
+  );
+  assertEq(
+    await hit('GET', `/plants/${planteAdminId}`, 200, null, adminToken),
+    'name',
+    planteAdmin.name
+  );
+
+  // --- Test PATCH /admin/plants/:id ---
+  const prixModifie = 123;
+  await hit(
+    'PATCH',
+    `/admin/plants/${planteAdminId}`,
+    200,
+    { price: prixModifie },
+    adminToken
+  );
+  assertEq(
+    await hit('GET', `/plants/${planteAdminId}`, 200, null, adminToken),
+    'price',
+    prixModifie
+  );
+
+  // --- Nettoyage ---
+  await hit('DELETE', `/plants/${planteAdminId}`, 200, null, adminToken);
+
+  return { success: true };
 }
 
 async function testAdminUsers(adminToken) {
   console.log('\n📌 TEST MODULE: ADMIN USERS');
   const utilisateurs = await hit('GET', '/admin/users', 200, null, adminToken);
   console.log(`   ↳ ${utilisateurs.length} utilisateurs récupérés`);
+
+  // --- Test PATCH /admin/users/:id ---
+  const utilisateur = utilisateurs[0];
+  const nomModifie = `AdminModif-${Date.now()}`;
+  await hit(
+    'PATCH',
+    `/admin/users/${utilisateur.id}`,
+    200,
+    { name: nomModifie },
+    adminToken
+  );
+  assertEq(
+    await hit('GET', `/users/${utilisateur.id}`, 200, null, adminToken),
+    'name',
+    nomModifie
+  );
+
+  return { success: true };
 }
 
 /* ---------- exécution des tests ---------- */
