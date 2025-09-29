@@ -13,6 +13,10 @@
 │   │   │   ├── app
 │   │   │   │   ├── admin
 │   │   │   │   │   ├── plants
+│   │   │   │   │   │   ├── plant-new
+│   │   │   │   │   │   │   ├── plant-new.component.css
+│   │   │   │   │   │   │   ├── plant-new.component.html
+│   │   │   │   │   │   │   └── plant-new.component.ts
 │   │   │   │   │   │   ├── plants-edit
 │   │   │   │   │   │   │   ├── plants-edit.component.css
 │   │   │   │   │   │   │   ├── plants-edit.component.html
@@ -82,10 +86,6 @@
 │   │   │   │   │   │   ├── plant-detail.component.css
 │   │   │   │   │   │   ├── plant-detail.component.html
 │   │   │   │   │   │   └── plant-detail.component.ts
-│   │   │   │   │   ├── plant-new
-│   │   │   │   │   │   ├── plant-new.component.css
-│   │   │   │   │   │   ├── plant-new.component.html
-│   │   │   │   │   │   └── plant-new.component.ts
 │   │   │   │   │   └── plants-list
 │   │   │   │   │       ├── plants-list.component.css
 │   │   │   │   │       ├── plants-list.component.html
@@ -20859,7 +20859,16 @@ export class OrdersController {
 ## apps/plant_shop_nest/src/app/plants/admin-plants.controller.ts
 
 // # Importations
-import { Controller, Get, Delete, Param, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Delete,
+  Param,
+  UseGuards,
+  Post,
+  Patch,
+  Body,
+} from '@nestjs/common';
 import { PlantsService } from './plants.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
@@ -20875,6 +20884,18 @@ export class AdminPlantsController {
   @Roles('admin')
   findAll() {
     return this.plantsService.findAll();
+  }
+
+  @Post()
+  @Roles('admin')
+  create(@Body() data: any) {
+    return this.plantsService.create(data);
+  }
+
+  @Patch(':id')
+  @Roles('admin')
+  update(@Param('id') id: string, @Body() data: any) {
+    return this.plantsService.update(+id, data);
   }
 
   @Delete(':id')
@@ -20947,7 +20968,15 @@ export class PlantsController {
 ## apps/plant_shop_nest/src/app/users/admin-users.controller.ts
 
 // # Importations
-import { Controller, Get, Delete, Param, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Delete,
+  Param,
+  UseGuards,
+  Patch,
+  Body,
+} from '@nestjs/common';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
@@ -20963,6 +20992,12 @@ export class AdminUsersController {
   @Roles('admin')
   findAll() {
     return this.usersService.findAll();
+  }
+
+  @Patch(':id')
+  @Roles('admin')
+  update(@Param('id') id: string, @Body() data: any) {
+    return this.usersService.update(+id, data);
   }
 
   @Delete(':id')

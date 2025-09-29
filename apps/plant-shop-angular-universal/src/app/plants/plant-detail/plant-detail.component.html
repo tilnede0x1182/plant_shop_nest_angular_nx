@@ -11,9 +11,10 @@
 			</button>
 
 			<ng-container *ngIf="est_admin">
-				<a class="btn btn-warning" [routerLink]="['/admin/plants']">
+				<a class="btn btn-warning" [routerLink]="['/admin/plants', plante.id, 'edit']" >
 					Modifier
 				</a>
+
 				<button type="button" class="btn btn-danger" (click)="supprimerPlante()">
 					Supprimer
 				</button>
