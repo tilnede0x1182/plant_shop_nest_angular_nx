@@ -27,9 +27,7 @@
 				</td>
 				<td class="text-center">
 					<div class="d-flex justify-content-center gap-2">
-						<a [routerLink]="['/users', user.id, 'edit']" class="btn btn-warning btn-sm">
-							✏ Modifier
-						</a>
+						<a [routerLink]="['/admin/users', user.id, 'edit']" class="btn btn-warning btn-sm">✏ Modifier</a>
 						<button (click)="supprimerUtilisateur(user.id)" class="btn btn-danger btn-sm">
 							🗑 Supprimer
 						</button>

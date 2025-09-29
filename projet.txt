@@ -13,6 +13,10 @@
 │   │   │   ├── app
 │   │   │   │   ├── admin
 │   │   │   │   │   ├── plants
+│   │   │   │   │   │   ├── plants-edit
+│   │   │   │   │   │   │   ├── plants-edit.component.css
+│   │   │   │   │   │   │   ├── plants-edit.component.html
+│   │   │   │   │   │   │   └── plants-edit.component.ts
 │   │   │   │   │   │   └── plants-list
 │   │   │   │   │   │       ├── plants-list.component.css
 │   │   │   │   │   │       ├── plants-list.component.html
@@ -53,14 +57,9 @@
 │   │   │   │   │   │   └── cart.component.ts
 │   │   │   │   │   ├── cart-item
 │   │   │   │   │   │   ├── cart-item.component.css
-│   │   │   │   │   │   ├── cart-item.component.html
-│   │   │   │   │   │   └── cart-item.component.ts
+│   │   │   │   │   │   └── cart-item.component.html
 │   │   │   │   │   └── cart.service.ts
 │   │   │   │   ├── components
-│   │   │   │   │   ├── cart.component.ts
-│   │   │   │   │   ├── order-new.component.ts
-│   │   │   │   │   ├── plant-detail.component.ts
-│   │   │   │   │   └── plants-list.component.ts
 │   │   │   │   ├── navbar
 │   │   │   │   │   ├── navbar.component.css
 │   │   │   │   │   ├── navbar.component.html
@@ -93,8 +92,7 @@
 │   │   │   │   │       └── plants-list.component.ts
 │   │   │   │   ├── services
 │   │   │   │   │   ├── api.service.ts
-│   │   │   │   │   ├── api.spec.ts
-│   │   │   │   │   └── api.ts
+│   │   │   │   │   └── api.spec.ts
 │   │   │   │   └── users
 │   │   │   │       └── user-profile
 │   │   │   │           ├── user-profile.component.css
@@ -201,7 +199,7 @@
 ├── users.txt
 └── vitest.workspace.ts
 
-52 directories, 147 files
+53 directories, 144 files
 
 # CONFIGURATION
 #
@@ -21704,7 +21702,7 @@ export const appRoutes: Route[] = [
   {
     path: 'profile/edit',
     loadComponent: () =>
-      import('./users/user-profile-edit/user-profile-edit.component').then(
+      import('./admin/users/user-profile-edit/user-profile-edit.component').then(
         (m) => m.UserProfileEditComponent
       ),
     canActivate: [AuthGuard],
@@ -21801,284 +21799,5 @@ import { NavbarComponent } from './navbar/navbar.component';
   styleUrls: ['./app.css'],
 })
 export class App {}
-
-
-
-# ANGULAR COMPONENTS
-#
-## apps/plant-shop-angular-universal/src/app/components/cart.component.ts
-
-// # Importations
-import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
-
-// # Panier
-@Component({
-  standalone: true,
-  selector: 'app-cart',
-  imports: [CommonModule],
-  template: `
-    <h2>🛒 Mon Panier</h2>
-    <p>
-      Fonctionnalité panier à implémenter (localStorage ou service partagé).
-    </p>
-  `,
-})
-export class CartComponent {}
-
-
-## apps/plant-shop-angular-universal/src/app/components/order-new.component.ts
-
-// # Importations
-import { Component, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { ApiService } from '../services/api.service';
-
-// # Nouvelle commande
-@Component({
-  standalone: true,
-  selector: 'app-order-new',
-  imports: [CommonModule],
-  template: `
-    <h2>📝 Nouvelle commande</h2>
-    <form (ngSubmit)="soumettre()">
-      <p>
-        Exemple : valider une commande pour l’utilisateur #1 avec une plante
-        fictive.
-      </p>
-      <button type="submit">Passer commande</button>
-    </form>
-    <p *ngIf="message" class="alert alert-info">{{ message }}</p>
-  `,
-})
-export class OrderNewComponent {
-  private api = inject(ApiService);
-  protected message = '';
-
-  soumettre() {
-    const payload = { userId: 1, items: [{ plantId: 1, quantity: 1 }] };
-    this.api.creerCommande(payload).subscribe({
-      next: (res) => (this.message = `Commande #${res.id} créée ✅`),
-      error: () => (this.message = 'Erreur lors de la commande ❌'),
-    });
-  }
-}
-
-
-## apps/plant-shop-angular-universal/src/app/components/plant-detail.component.ts
-
-// # Importations
-import { Component, OnInit, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { ActivatedRoute, RouterModule } from '@angular/router';
-import { ApiService, Plante } from '../services/api.service';
-
-// # Détail d'une plante
-@Component({
-  standalone: true,
-  selector: 'app-plant-detail',
-  imports: [CommonModule, RouterModule],
-  template: `
-    <a routerLink="/">← Retour</a>
-    <div *ngIf="plante">
-      <h2>{{ plante.name }}</h2>
-      <p><strong>Prix :</strong> {{ plante.price }} €</p>
-      <p><strong>Stock :</strong> {{ plante.stock }}</p>
-      <p *ngIf="plante.description">
-        <em>{{ plante.description }}</em>
-      </p>
-    </div>
-  `,
-})
-export class PlantDetailComponent implements OnInit {
-  private route = inject(ActivatedRoute);
-  private api = inject(ApiService);
-  protected plante: Plante | null = null;
-
-  ngOnInit() {
-    const id = Number(this.route.snapshot.paramMap.get('id'));
-    this.api.unePlante(id).subscribe((donnees) => (this.plante = donnees));
-  }
-}
-
-
-## apps/plant-shop-angular-universal/src/app/components/plants-list.component.ts
-
-// # Importations
-import { Component, OnInit, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
-import { ApiService, Plante } from '../services/api.service';
-
-// # Liste des plantes
-@Component({
-  standalone: true,
-  selector: 'app-plants-list',
-  imports: [CommonModule, RouterModule],
-  template: `
-    <h2>🌿 Plantes disponibles</h2>
-    <ul>
-      <li *ngFor="let plante of plantes">
-        <a [routerLink]="['/plants', plante.id]">
-          {{ plante.name }} — {{ plante.price }} € (Stock: {{ plante.stock }})
-        </a>
-      </li>
-    </ul>
-  `,
-})
-export class PlantsListComponent implements OnInit {
-  private api = inject(ApiService);
-  protected plantes: Plante[] = [];
-
-  ngOnInit() {
-    this.api.listerPlantes().subscribe((donnees) => (this.plantes = donnees));
-  }
-}
-
-
-
-# ANGULAR SERVICES
-#
-## apps/plant-shop-angular-universal/src/app/services/api.service.ts
-
-// # Importations
-import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
-
-// # Types simples
-export type Plante = {
-  id: number;
-  name: string;
-  price: number;
-  stock: number;
-  description?: string;
-};
-export type Utilisateur = {
-  id: number;
-  email: string;
-  name: string;
-  admin: boolean;
-};
-export type Commande = {
-  id: number;
-  userId: number;
-  status: string | null;
-  totalPrice: number | null;
-  createdAt: string;
-  orderItems: {
-    id: number;
-    quantity: number;
-    plant: Plante;
-  }[];
-};
-
-// # Service API
-@Injectable({ providedIn: 'root' })
-export class ApiService {
-  private http = inject(HttpClient);
-  private base = '/api'; // proxy vers backend Nest
-
-  /* ---------- Plantes ---------- */
-  listerPlantes(): Observable<Plante[]> {
-    return this.http.get<Plante[]>(`${this.base}/plants`);
-  }
-  unePlante(id: number): Observable<Plante> {
-    return this.http.get<Plante>(`${this.base}/plants/${id}`);
-  }
-  creerPlante(data: Partial<Plante>): Observable<Plante> {
-    console.log('[API CALL] POST /plants avec', data);
-    return this.http.post<Plante>(`${this.base}/plants`, data);
-  }
-  majPlante(id: number, data: Partial<Plante>): Observable<Plante> {
-    return this.http.patch<Plante>(`${this.base}/plants/${id}`, data);
-  }
-  supprimerPlante(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.base}/plants/${id}`);
-  }
-
-  /* ---------- Utilisateurs ---------- */
-  listerUtilisateurs(): Observable<Utilisateur[]> {
-    return this.http.get<Utilisateur[]>(`${this.base}/users`);
-  }
-  unUtilisateur(id: number): Observable<Utilisateur> {
-    return this.http.get<Utilisateur>(`${this.base}/users/${id}`);
-  }
-  majUtilisateur(
-    id: number,
-    data: Partial<Utilisateur>
-  ): Observable<Utilisateur> {
-    return this.http.patch<Utilisateur>(`${this.base}/users/${id}`, data);
-  }
-  supprimerUtilisateur(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.base}/users/${id}`);
-  }
-
-  /* ---------- Commandes ---------- */
-  listerCommandes(): Observable<Commande[]> {
-    return this.http.get<Commande[]>(`${this.base}/orders`);
-  }
-  uneCommande(id: number): Observable<Commande> {
-    return this.http.get<Commande>(`${this.base}/orders/${id}`);
-  }
-  creerCommande(data: any): Observable<Commande> {
-    return this.http.post<Commande>(`${this.base}/orders`, data);
-  }
-  majCommande(id: number, data: any): Observable<Commande> {
-    return this.http.patch<Commande>(`${this.base}/orders/${id}`, data);
-  }
-  supprimerCommande(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.base}/orders/${id}`);
-  }
-
-  /* ---------- Admin ---------- */
-  listerPlantesAdmin(): Observable<Plante[]> {
-    return this.http.get<Plante[]>(`${this.base}/admin/plants`);
-  }
-
-  supprimerPlanteAdmin(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.base}/admin/plants/${id}`);
-  }
-
-  listerUtilisateursAdmin(): Observable<Utilisateur[]> {
-    return this.http.get<Utilisateur[]>(`${this.base}/admin/users`);
-  }
-
-  supprimerUtilisateurAdmin(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.base}/admin/users/${id}`);
-  }
-}
-
-
-## apps/plant-shop-angular-universal/src/app/services/api.spec.ts
-
-import { TestBed } from '@angular/core/testing';
-
-import { Api } from './';
-
-describe('Api', () => {
-  let service: Api;
-
-  beforeEach(() => {
-    TestBed.configureTestingModule({});
-    service = TestBed.inject(Api);
-  });
-
-  it('should be created', () => {
-    expect(service).toBeTruthy();
-  });
-});
-
-
-## apps/plant-shop-angular-universal/src/app/services/api.ts
-
-import { Injectable } from '@angular/core';
-
-@Injectable({
-  providedIn: 'root'
-})
-export class Api {
-  
-}
 
 

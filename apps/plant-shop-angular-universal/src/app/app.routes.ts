@@ -60,9 +60,9 @@ export const appRoutes: Route[] = [
   {
     path: 'profile/edit',
     loadComponent: () =>
-      import('./admin/users/user-profile-edit/user-profile-edit.component').then(
-        (m) => m.UserProfileEditComponent
-      ),
+      import(
+        './admin/users/user-profile-edit/user-profile-edit.component'
+      ).then((m) => m.UserProfileEditComponent),
     canActivate: [AuthGuard],
   },
 
@@ -101,10 +101,26 @@ export const appRoutes: Route[] = [
     canActivate: [AdminGuard],
   },
   {
+    path: 'admin/users/:id/edit',
+    loadComponent: () =>
+      import(
+        './admin/users/user-profile-edit/user-profile-edit.component'
+      ).then((m) => m.UserProfileEditComponent),
+    canActivate: [AdminGuard],
+  },
+  {
     path: 'admin/plants',
     loadComponent: () =>
       import('./admin/plants/plants-list/plants-list.component').then(
         (m) => m.AdminPlantsListComponent
+      ),
+    canActivate: [AdminGuard],
+  },
+  {
+    path: 'admin/plants/:id/edit',
+    loadComponent: () =>
+      import('./admin/plants/plants-edit/plants-edit.component').then(
+        (m) => m.PlantsEditComponent
       ),
     canActivate: [AdminGuard],
   },

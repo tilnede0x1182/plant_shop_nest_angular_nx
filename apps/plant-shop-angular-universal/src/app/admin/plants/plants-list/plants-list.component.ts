@@ -33,7 +33,7 @@ export class AdminPlantsListComponent implements OnInit {
       next: (plants) => (this.plantes = plants),
       error: () => (this.message = '❌ Erreur lors du chargement des plantes'),
     });
-  }
+	}
 
   /**
    * Supprime une plante (avec confirmation)
