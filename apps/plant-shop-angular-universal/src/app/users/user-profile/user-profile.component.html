@@ -7,8 +7,8 @@
 	<div *ngIf="user.admin" class="alert alert-info p-2">
 		Administrateur
 	</div>
-
-	<a *ngIf="user" [routerLink]="['/admin/users', user.id, 'edit']" class="btn btn-primary">
+	<a [routerLink]="['/admin/users', user.id, 'edit']"
+		class="btn btn-outline-primary">
 		Modifier mon profil
 	</a>
 </div>

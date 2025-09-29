@@ -48,7 +48,7 @@ export class ApiService {
     return this.http.post<Plante>(`${this.base}/plants`, data);
   }
   majPlante(id: number, data: Partial<Plante>): Observable<Plante> {
-    return this.http.patch<Plante>(`${this.base}/plants/${id}`, data);
+    return this.http.patch<Plante>(`${this.base}/admin/plants/${id}`, data);
   }
   supprimerPlante(id: number): Observable<void> {
     return this.http.delete<void>(`${this.base}/plants/${id}`);
@@ -65,7 +65,7 @@ export class ApiService {
     id: number,
     data: Partial<Utilisateur>
   ): Observable<Utilisateur> {
-    return this.http.patch<Utilisateur>(`${this.base}/users/${id}`, data);
+    return this.http.patch<Utilisateur>(`${this.base}/admin/users/${id}`, data);
   }
   supprimerUtilisateur(id: number): Observable<void> {
     return this.http.delete<void>(`${this.base}/users/${id}`);
