@@ -50,7 +50,7 @@ export class PlantsListComponent implements OnInit {
 
   get estAdmin(): boolean {
     const isAdminRes = this.auth.isAdmin();
-    console.log('[estAdmin] : ' + isAdminRes);
+    // console.log('[estAdmin] : ' + isAdminRes);
     return isAdminRes;
   }
 }

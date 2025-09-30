@@ -21034,7 +21034,6 @@ import { Roles } from '../auth/roles.decorator';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  // ✅ Réservé aux admins
   @Roles('admin')
   @Get()
   findAll() {
@@ -21060,22 +21059,33 @@ export class UsersController {
     throw new ForbiddenException('Accès refusé');
   }
 
-  // ✅ Accessible (register se fait déjà via AuthController),
-  // mais un admin peut créer un utilisateur manuellement
   @Roles('admin')
   @Post()
   create(@Body() data: any) {
     return this.usersService.create(data);
   }
 
-  // ✅ Réservé aux admins
-  @Roles('admin')
+  // Admin ou utilisateur propriétaire
   @Patch(':id')
-  update(@Param('id') id: string, @Body() data: any) {
-    return this.usersService.update(+id, data);
+  async update(@Param('id') id: string, @Body() data: any, @Req() req) {
+    const userId = +id;
+    const currentUser = req.user;
+
+    // Admin → peut modifier n’importe qui
+    if (currentUser.admin) {
+      return this.usersService.update(userId, data);
+    }
+
+    // Utilisateur → peut modifier uniquement son propre profil
+    if (currentUser.id === userId) {
+      // Sécurité : empêcher qu’il force `admin: true`
+      if ('admin' in data) delete data.admin;
+      return this.usersService.update(userId, data);
+    }
+
+    throw new ForbiddenException('Accès refusé');
   }
 
-  // ✅ Réservé aux admins
   @Roles('admin')
   @Delete(':id')
   remove(@Param('id') id: string) {
