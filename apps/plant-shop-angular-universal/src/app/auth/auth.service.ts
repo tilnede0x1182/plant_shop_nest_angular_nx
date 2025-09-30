@@ -60,7 +60,7 @@ export class AuthService {
     const token = localStorage.getItem(this.tokenKey);
     const user = this.getUser();
     const res = !!token && !!user;
-    console.log('[AuthService FRONT] isAuthenticated →', res, { token, user });
+    // console.log('[AuthService FRONT] isAuthenticated →', res, { token, user });
     return res;
   }
 
@@ -75,20 +75,18 @@ export class AuthService {
   }
 
   isAdmin(): boolean {
-    console.log('[AuthService FRONT] Vérification isAdmin()');
+    // console.log('[AuthService FRONT] Vérification isAdmin()');
 
     const user = this.getUser();
-    console.log('[AuthService FRONT] état interne user =', user);
+    // console.log('[AuthService FRONT] état interne user =', user);
 
     if (!user) {
-      console.log('[AuthService FRONT] Pas connecté → isAdmin=false');
+      // console.log('[AuthService FRONT] Pas connecté → isAdmin=false');
       return false;
     }
 
     const resultat = user.admin === true;
-    console.log(
-      `[AuthService FRONT] email=${user.email}, admin=${user.admin} → isAdmin=${resultat}`
-    );
+    // console.log(`[AuthService FRONT] email=${user.email}, admin=${user.admin} → isAdmin=${resultat}`);
     return resultat;
   }
 

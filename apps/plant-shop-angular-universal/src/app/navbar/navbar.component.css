@@ -2,9 +2,6 @@
 .custom-navbar {
   background-color: #006576 !important;
 }
-.navbar-brand {
-  font-weight: bold;
-}
 .logout-link {
   cursor: pointer;
 }
