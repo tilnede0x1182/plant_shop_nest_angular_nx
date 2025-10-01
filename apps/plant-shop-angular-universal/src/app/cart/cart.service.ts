@@ -2,58 +2,88 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 
+// # Données
 export type CartItem = {
-  plantId: number;
+  id: number;
   name: string;
   price: number;
   quantity: number;
+  stock: number;
 };
 
 @Injectable({ providedIn: 'root' })
 export class CartService {
-  private storageKey = 'cart_items';
-  private items: CartItem[] = [];
+  private storageKey = 'cart';
+  private items: Record<number, CartItem> = {};
   cartCount$ = new BehaviorSubject<number>(0);
 
   constructor() {
     this.load();
+    this.updateCount();
   }
 
-  /** Ajouter une plante au panier */
-  add(item: CartItem) {
-    const existing = this.items.find((i) => i.plantId === item.plantId);
-    if (existing) {
-      existing.quantity += item.quantity;
+  /** Ajouter une plante */
+  add(id: number, name: string, price: number, stock: number) {
+    if (!this.items[id]) {
+      this.items[id] = { id, name, price, quantity: 0, stock };
+    }
+    if (this.items[id].quantity < stock) {
+      this.items[id].quantity++;
     } else {
-      this.items.push(item);
+      alert(`Stock insuffisant pour ${name}, reste ${stock}.`);
     }
     this.save();
-		this.updateCount();
+    this.updateCount();
   }
 
-  /** Supprimer une plante du panier */
-  remove(plantId: number) {
-    this.items = this.items.filter((i) => i.plantId !== plantId);
+  /** Mettre à jour quantité */
+  update(id: number, quantity: number) {
+    if (!this.items[id]) return;
+    const corrected = Math.min(Math.max(quantity, 1), this.items[id].stock);
+    this.items[id].quantity = corrected;
     this.save();
-		this.updateCount();
+    this.updateCount();
+  }
+
+  /** Supprimer un produit */
+  remove(id: number) {
+    delete this.items[id];
+    this.save();
+    this.updateCount();
   }
 
   /** Vider le panier */
   clear() {
-    this.items = [];
-    this.save();
-		this.updateCount();
+    this.items = {};
+    localStorage.removeItem(this.storageKey);
+    this.updateCount();
   }
 
   /** Récupérer le contenu du panier */
   getAll(): CartItem[] {
-    return [...this.items];
+    return Object.values(this.items);
+  }
+
+  /** Total général */
+  getTotal(): number {
+    return this.getAll().reduce(
+      (sum, item) => sum + item.price * item.quantity,
+      0
+    );
+  }
+
+  /** Payload API */
+  toOrderPayload() {
+    return this.getAll().map((item) => ({
+      plantId: item.id,
+      quantity: item.quantity,
+    }));
   }
 
   /** Charger depuis localStorage */
   private load() {
     const raw = localStorage.getItem(this.storageKey);
-    this.items = raw ? JSON.parse(raw) : [];
+    this.items = raw ? JSON.parse(raw) : {};
   }
 
   /** Sauvegarder dans localStorage */
@@ -61,12 +91,9 @@ export class CartService {
     localStorage.setItem(this.storageKey, JSON.stringify(this.items));
   }
 
-	/** Mettre à jour le nombre d'articles du panier */
+  /** Mettre à jour compteur */
   private updateCount() {
-    const total = Object.values(this.items).reduce(
-      (sum, item: any) => sum + item.quantity,
-      0
-    );
+    const total = this.getAll().reduce((sum, item) => sum + item.quantity, 0);
     this.cartCount$.next(total);
   }
 }
