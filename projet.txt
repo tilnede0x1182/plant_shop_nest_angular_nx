@@ -69,10 +69,6 @@
 │   │   │   │   │   ├── navbar.component.html
 │   │   │   │   │   └── navbar.component.ts
 │   │   │   │   ├── orders
-│   │   │   │   │   ├── order-detail
-│   │   │   │   │   │   ├── order-detail.component.css
-│   │   │   │   │   │   ├── order-detail.component.html
-│   │   │   │   │   │   └── order-detail.component.ts
 │   │   │   │   │   ├── order-list
 │   │   │   │   │   │   ├── order-list.component.css
 │   │   │   │   │   │   ├── order-list.component.html
@@ -203,7 +199,7 @@
 ├── users.txt
 └── vitest.workspace.ts
 
-54 directories, 147 files
+53 directories, 144 files
 
 # CONFIGURATION
 #
@@ -1279,14 +1275,6 @@ export const appRoutes: Route[] = [
       ),
     canActivate: [AuthGuard],
   },
-  {
-    path: 'orders/:id',
-    loadComponent: () =>
-      import('./orders/order-detail/order-detail.component').then(
-        (m) => m.OrderDetailComponent
-      ),
-    canActivate: [AuthGuard],
-  },
   // ⚙️ Admin
   {
     path: 'admin/users',
@@ -1939,34 +1927,6 @@ export class NavbarComponent implements OnInit {
 }
 
 
-## apps/plant-shop-angular-universal/src/app/orders/order-detail/order-detail.component.ts
-
-// # Importations
-import { Component, OnInit, inject } from '@angular/core';
-import { ActivatedRoute, RouterModule } from '@angular/router';
-import { CommonModule } from '@angular/common';
-import { ApiService } from '../../services/api.service';
-
-// # Composant OrderDetail
-@Component({
-  selector: 'app-order-detail',
-  standalone: true,
-  imports: [CommonModule, RouterModule],
-  templateUrl: './order-detail.component.html',
-  styleUrls: ['./order-detail.component.css'],
-})
-export class OrderDetailComponent implements OnInit {
-  private route = inject(ActivatedRoute);
-  private api = inject(ApiService);
-  protected order: any = null;
-
-  ngOnInit() {
-    const id = Number(this.route.snapshot.paramMap.get('id'));
-    this.api.uneCommande(id).subscribe((donnees) => (this.order = donnees));
-  }
-}
-
-
 ## apps/plant-shop-angular-universal/src/app/orders/order-list/order-list.component.ts
 
 // # Importations
@@ -2051,8 +2011,8 @@ export class OrderNewComponent {
       next: (res) => {
         this.message = `✅ Commande #${res.id} créée`;
         this.cart.clear();
-        // redirection vers la page commande
-        setTimeout(() => this.router.navigate(['/orders', res.id]), 1000);
+        // redirection vers la page des commandes
+        this.router.navigate(['/orders']);
       },
       error: () => {
         this.message = '❌ Erreur lors de la commande';
@@ -2814,28 +2774,6 @@ export class UserProfileComponent {
 </nav>
 
 
-## apps/plant-shop-angular-universal/src/app/orders/order-detail/order-detail.component.html
-
-<div class="container mt-4" *ngIf="order">
-	<a class="btn btn-secondary mb-3" routerLink="/orders">← Retour aux commandes</a>
-
-	<div class="card">
-		<div class="card-body">
-			<h2 class="card-title">Commande #{{ order.id }}</h2>
-			<p><strong>Utilisateur :</strong> {{ order.userId }}</p>
-			<p><strong>Statut :</strong> {{ order.status }}</p>
-
-			<h4 class="mt-3">Items</h4>
-			<ul>
-				<li *ngFor="let item of order.items">
-					{{ item.quantity }} × {{ item.plant?.name }} ({{ item.plant?.price }} €)
-				</li>
-			</ul>
-		</div>
-	</div>
-</div>
-
-
 ## apps/plant-shop-angular-universal/src/app/orders/order-list/order-list.component.html
 
 <h1 class="text-center mb-4">📜 Mes Commandes</h1>
@@ -3143,13 +3081,6 @@ td {
 }
 .logout-link {
   cursor: pointer;
-}
-
-
-## apps/plant-shop-angular-universal/src/app/orders/order-detail/order-detail.component.css
-
-.card-title {
-  color: #2d572c;
 }
 
 
@@ -4147,6 +4078,7 @@ import { OrdersService } from './orders.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
+import { Request } from 'express';
 
 // # Contrôleur Orders
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -4154,18 +4086,11 @@ import { Roles } from '../auth/roles.decorator';
 export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
 
-  // ✅ Un admin voit toutes les commandes
-  @Roles('admin')
+  // ✅ Tout utilisateur authentifié voit uniquement ses propres commandes
   @Get()
-  findAll() {
-    return this.ordersService.findAll();
-  }
-
-  // ✅ Un utilisateur voit seulement ses propres commandes
-  @Get(':id')
-  findOne(@Param('id') id: string, @Req() req: any) {
-    const user = req.user;
-    return this.ordersService.findOneForUser(+id, user);
+  findAll(@Req() req: any) {
+    const userId = req.user.id;
+    return this.ordersService.findAll(userId);
   }
 
   // ✅ Tout utilisateur authentifié peut créer une commande
@@ -4609,10 +4534,15 @@ export class OrdersService {
   }
 
   /**
-    findAll (alias de list)
-  */
-  async findAll() {
-    return this.list();
+   * Liste les commandes de l’utilisateur courant uniquement
+   * @userId identifiant de l’utilisateur connecté
+   */
+  async findAll(userId: number) {
+    return this.prisma.order.findMany({
+      where: { userId },
+      include: { orderItems: { include: { plant: true } } },
+      orderBy: { createdAt: 'desc' },
+    });
   }
 
   /**
@@ -5107,14 +5037,6 @@ export const appRoutes: Route[] = [
     loadComponent: () =>
       import('./orders/order-list/order-list.component').then(
         (m) => m.OrderListComponent
-      ),
-    canActivate: [AuthGuard],
-  },
-  {
-    path: 'orders/:id',
-    loadComponent: () =>
-      import('./orders/order-detail/order-detail.component').then(
-        (m) => m.OrderDetailComponent
       ),
     canActivate: [AuthGuard],
   },
