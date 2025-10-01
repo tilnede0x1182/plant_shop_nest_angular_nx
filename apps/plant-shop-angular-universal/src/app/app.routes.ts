@@ -84,14 +84,6 @@ export const appRoutes: Route[] = [
       ),
     canActivate: [AuthGuard],
   },
-  {
-    path: 'orders/:id',
-    loadComponent: () =>
-      import('./orders/order-detail/order-detail.component').then(
-        (m) => m.OrderDetailComponent
-      ),
-    canActivate: [AuthGuard],
-  },
   // ⚙️ Admin
   {
     path: 'admin/users',
