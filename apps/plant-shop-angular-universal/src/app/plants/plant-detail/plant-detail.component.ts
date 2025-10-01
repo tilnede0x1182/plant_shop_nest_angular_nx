@@ -3,6 +3,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { ApiService, Plante } from '../../services/api.service';
+import { CartService } from '../../cart/cart.service';
 
 // # Données
 type Cart = {
@@ -52,6 +53,7 @@ export class PlantDetailComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private api = inject(ApiService);
+  private cartService = inject(CartService);
 
   protected plante: Plante | null = null;
   protected est_admin = false;
@@ -69,14 +71,12 @@ export class PlantDetailComponent implements OnInit {
   /** Ajoute la plante au panier (localStorage/instance globale) */
   ajouterAuPanier() {
     if (!this.plante) return;
-    const panier = getCartInstance();
-    if (panier)
-      panier.add(
-        this.plante.id,
-        this.plante.name,
-        this.plante.price,
-        this.plante.stock
-      );
+    this.cartService.add(
+      this.plante.id,
+      this.plante.name,
+      this.plante.price,
+      this.plante.stock
+    );
   }
 
   /** Supprime la plante (admin), puis redirige vers la liste */

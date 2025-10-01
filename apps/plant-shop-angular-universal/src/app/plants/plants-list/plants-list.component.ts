@@ -4,18 +4,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { ApiService, Plante } from '../../services/api.service';
 import { AuthService } from '../../auth/auth.service';
-
-/**
- * Met à jour le panier dans localStorage et émet un event global
- * @plante plante à ajouter
- */
-function ajouterAuPanierLocal(plante: Plante): void {
-  const contenu = JSON.parse(localStorage.getItem('cart') || '{}');
-  contenu[plante.id] ??= { ...plante, quantity: 0 };
-  if (contenu[plante.id].quantity < plante.stock) contenu[plante.id].quantity++;
-  localStorage.setItem('cart', JSON.stringify(contenu));
-  window.dispatchEvent(new Event('cart-updated'));
-}
+import { CartService } from '../../cart/cart.service';
 
 @Component({
   selector: 'app-plants-list',
@@ -27,6 +16,7 @@ function ajouterAuPanierLocal(plante: Plante): void {
 export class PlantsListComponent implements OnInit {
   private api = inject(ApiService);
   private auth = inject(AuthService);
+  private cartService = inject(CartService);
   protected plantes: Plante[] = [];
 
   /**
@@ -45,7 +35,7 @@ export class PlantsListComponent implements OnInit {
    * @plante élément sélectionné
    */
   addToCart(plante: Plante): void {
-    ajouterAuPanierLocal(plante);
+    this.cartService.add(plante.id, plante.name, plante.price, plante.stock);
   }
 
   get estAdmin(): boolean {

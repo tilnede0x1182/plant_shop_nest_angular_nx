@@ -27,18 +27,13 @@ export class OrderNewComponent {
   }
 
   passerCommande() {
-    const items = this.cart.getAll().map((i) => ({
-      plantId: i.plantId,
-      quantity: i.quantity,
-    }));
+    const items = this.cart.toOrderPayload();
 
     if (items.length === 0) {
       this.message = '❌ Panier vide';
       return;
     }
 
-    // Ici on suppose que le userId est récupéré du token backend,
-    // donc on envoie juste les items
     this.api.creerCommande({ userId: 0, items }).subscribe({
       next: (res) => {
         this.message = `✅ Commande #${res.id} créée`;
