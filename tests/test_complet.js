@@ -132,6 +132,8 @@ async function testUsers(adminToken) {
 
 async function testOrders(adminToken, userToken) {
   console.log('\n📌 TEST MODULE: ORDERS & ORDER ITEMS');
+
+  // Création d'une plante (admin)
   const plantData = { name: `Test Plant ${Date.now()}`, price: 10, stock: 5 };
   const { id: plantId } = await hit(
     'POST',
@@ -141,7 +143,7 @@ async function testOrders(adminToken, userToken) {
     adminToken
   );
 
-  // Création commande par user
+  // Création commande par l'utilisateur
   const orderPayload = { items: [{ plantId, quantity: 2 }] };
   const { id: orderId } = await hit(
     'POST',
@@ -151,7 +153,7 @@ async function testOrders(adminToken, userToken) {
     userToken
   );
 
-  // Admin change statut
+  // L'admin modifie le statut
   await hit(
     'PATCH',
     `/orders/${orderId}`,
@@ -159,17 +161,20 @@ async function testOrders(adminToken, userToken) {
     { status: 'shipped' },
     adminToken
   );
-  assertEq(
-    await hit('GET', `/orders/${orderId}`, 200, null, adminToken),
-    'status',
-    'shipped'
-  );
+
+  // Vérification via la liste des commandes de l'utilisateur (pas de route show)
+  const commandes = await hit('GET', '/orders', 200, null, userToken);
+  const commande = commandes.find((o) => o.id === orderId);
+  if (!commande) throw new Error(`Commande ${orderId} introuvable`);
+  assertEq(commande, 'status', 'shipped');
 
   // Nettoyage
   await hit('DELETE', `/orders/${orderId}`, 200, null, adminToken);
   await hit('DELETE', `/plants/${plantId}`, 200, null, adminToken);
+
   return { success: true };
 }
+
 
 async function testUserProfile(adminToken, userToken, userEmail) {
   console.log('\n📌 TEST MODULE: USER PROFILE (user)');

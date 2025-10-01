@@ -26,10 +26,15 @@ export class OrdersService {
   }
 
   /**
-    findAll (alias de list)
-  */
-  async findAll() {
-    return this.list();
+   * Liste les commandes de l’utilisateur courant uniquement
+   * @userId identifiant de l’utilisateur connecté
+   */
+  async findAll(userId: number) {
+    return this.prisma.order.findMany({
+      where: { userId },
+      include: { orderItems: { include: { plant: true } } },
+      orderBy: { createdAt: 'desc' },
+    });
   }
 
   /**

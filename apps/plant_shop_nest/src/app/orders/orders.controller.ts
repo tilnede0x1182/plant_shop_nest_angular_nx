@@ -14,6 +14,7 @@ import { OrdersService } from './orders.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
+import { Request } from 'express';
 
 // # Contrôleur Orders
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -21,18 +22,11 @@ import { Roles } from '../auth/roles.decorator';
 export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
 
-  // ✅ Un admin voit toutes les commandes
-  @Roles('admin')
+  // ✅ Tout utilisateur authentifié voit uniquement ses propres commandes
   @Get()
-  findAll() {
-    return this.ordersService.findAll();
-  }
-
-  // ✅ Un utilisateur voit seulement ses propres commandes
-  @Get(':id')
-  findOne(@Param('id') id: string, @Req() req: any) {
-    const user = req.user;
-    return this.ordersService.findOneForUser(+id, user);
+  findAll(@Req() req: any) {
+    const userId = req.user.id;
+    return this.ordersService.findAll(userId);
   }
 
   // ✅ Tout utilisateur authentifié peut créer une commande
