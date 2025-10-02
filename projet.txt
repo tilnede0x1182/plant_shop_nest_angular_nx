@@ -213,15 +213,14 @@
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {
-    "test-e2e": "SERVE_SSR=false PORT=4100 nx serve plant_shop_nest",
-    "dev": "nx run plant-shop-angular-universal:serve-ssr --configuration=development",
     "dev-back": "SERVE_SSR=false PORT=4100 nx serve plant_shop_nest",
     "dev-front": "nx serve plant-shop-angular-universal --port=8300 --proxy-config proxy.conf.json",
-    "build-frontend": "nx build plant-shop-angular-universal --configuration=production",
+		"test-e2e": "SERVE_SSR=false PORT=4100 nx serve plant_shop_nest",
+    "test-routes": "node tests/test_complet.js",
     "build-backend": "nx build plant_shop_nest --configuration=production",
-    "build": "npm run build-frontend && npm run build-backend",
-    "start": "SERVE_SSR=true PORT=4150 node dist/apps/plant_shop_nest/main.js",
-    "test-routes": "node tests/test_complet.js"
+    "build-frontend": "nx build plant-shop-angular-universal --configuration=production",
+    "build": "npm run build-backend && npm run build-frontend",
+    "start": "SERVE_SSR=true PORT=4150 node dist/apps/plant_shop_nest/main.js"
   },
   "private": true,
   "dependencies": {
@@ -3783,8 +3782,25 @@ import { AppModule } from './app/app.module';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // Configurez le préfixe global pour l'API + Validation globale DTO
+  app.use((req, res, next) => {
+    console.log('[Nest DEBUG main.ts] incoming →', req.method, req.url);
+    next();
+  });
+
+  // Préfixe strictement limité à /api/*
   app.setGlobalPrefix('api');
+
+  // En mode SSR, servir les assets Angular
+  if (process.env.SERVE_SSR === 'true') {
+    const express = require('express');
+    const { join } = require('path');
+    const browserDist = join(
+      process.cwd(),
+      'dist/apps/plant-shop-angular-universal/browser'
+    );
+    app.use(express.static(browserDist));
+  }
+
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -3797,8 +3813,8 @@ async function bootstrap() {
   app.enableCors({
     origin: [
       'http://localhost:8300',
-      'http://localhost:4200',
       'http://localhost:3000',
+      'http://localhost:4150',
     ],
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true,
@@ -3808,6 +3824,31 @@ async function bootstrap() {
   await app.listen(port);
 
   Logger.log(`🚀 Application is running on: http://localhost:${port}/`);
+
+  // Fallback SSR
+  if (process.env.SERVE_SSR === 'true') {
+    const { join } = require('path');
+    const server: import('express').Express = app
+      .getHttpAdapter()
+      .getInstance();
+    const distFolder = join(
+      process.cwd(),
+      'dist/apps/plant-shop-angular-universal/browser'
+    );
+    const indexHtml = join(distFolder, 'index.html');
+
+    // N’intercepter que les GET non-API et non-fichiers statiques
+    server.use((req, res, next) => {
+      console.log('[SSR Middleware] incoming →', req.method, req.url);
+      if (req.method !== 'GET') return next();
+      if (req.url.startsWith('/api/')) return next();
+      if (req.url.match(/\.(js|css|ico|png|jpg|jpeg|gif|svg|webp|woff2?|ttf)$/))
+        return next();
+
+      console.log('[SSR Middleware] serve index.html for', req.url);
+      res.sendFile(indexHtml);
+    });
+  }
 }
 
 bootstrap();
@@ -4045,7 +4086,7 @@ export class UpdateUserDto {
 #
 ## apps/plant_shop_nest/src/app/angular/angular.controller.ts
 
-import { Controller, Get, Req, Res, All } from '@nestjs/common';
+import { Controller, Get, Req, Res, All, Next } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { join } from 'path';
 import * as express from 'express';
@@ -4054,26 +4095,44 @@ const isSSR = process.env.SERVE_SSR === 'true';
 
 @Controller('')
 export class AngularController {
-  private distFolder = join(
-    process.cwd(),
-    'dist/apps/plant-shop-angular-universal/browser'
-  );
+  // private distFolder = join(
+  //   process.cwd(),
+  //   'dist/apps/plant-shop-angular-universal/browser'
+  // );
 
-  constructor() {}
+  // constructor() {}
 
-  @Get()
-  serveRoot(@Res() res: Response) {
-		if (!isSSR) return res.status(404).send('Not Found');
-    res.sendFile(join(this.distFolder, 'index.html'));
-  }
+  // @Get()
+  // serveRoot(@Res() res: Response) {
+  //   if (!isSSR) return res.status(404).send('Not Found');
+  //   res.sendFile(join(this.distFolder, 'index.html'));
+  // }
 
-  @All('*')
-  serveAngular(@Req() req: Request, @Res() res: Response) {
-    // Si l'URL commence par / et qu'on n'est pas en SSR, on ne fait rien
-    if (!isSSR) return res.status(404).send('Not Found');
-    // Sinon, on sert l'application Angular
-    res.sendFile(join(this.distFolder, 'index.html'));
-  }
+  // @All('*')
+  // serveAngular(
+  //   @Req() req: Request,
+  //   @Res() res: Response,
+  //   @Next() next: () => void
+  // ) {
+  //   if (!isSSR) return next(); // dev → on laisse passer
+
+  //   const url = req.url;
+
+  //   // Laisser passer API
+  //   if (url.startsWith('/api')) {
+  //     console.log('[AngularController] laisse passer API', url);
+  //     return next();
+  //   }
+  //   // Laisser passer les assets statiques
+  //   if (url.match(/\.(?:js|css|ico|png|jpg|jpeg|gif|svg|webp|woff2?|ttf)$/)) {
+  //     console.log('[AngularController] laisse passer asset', url);
+  //     return next();
+  //   }
+
+  //   // Sinon, SSR
+  //   console.log('[AngularController] SSR Angular index.html pour', url);
+  //   return res.sendFile(join(this.distFolder, 'index.html'));
+  // }
 }
 
 
@@ -5597,26 +5656,37 @@ export class ApiService {
 
 ## Makefile
 
-run:
-	npm run dev
+# Run Dev SSR
+run: prod
 
+# Run non-SSR
 run-dev-back:
 	npm run dev-back
 
 run-dev-front:
 	npm run dev-front
 
+# Test des routes Nest
 test-e2e:
 	npm run test-e2e
-
-build:
-	npm run build
 
 test-routes:
 	npm run test-routes
 
+# Build et run SSR prod
+build:
+	npm run build
+
+buid-back:
+	npm run build-backend
+
+build-front:
+	npm run build-frontend
+
 prod:
 	npm run start
+
+build-run-prod: build prod
 
 typage:
 	npx tsc --noEmit
