@@ -32,6 +32,14 @@ export class NavbarComponent implements OnInit {
     this.cartService.cartCount$.subscribe(
       (count) => (this.nombreArticles = count)
     );
+
+    // abonnement direct à l'état utilisateur
+    this.auth.user$.subscribe((u) => {
+      this.userName = this.capitalizeName(String(u?.name || ''));
+      this.userId = u?.id ?? null;
+    });
+
+    // garder pour hydrater si refresh navigateur
     this.hydraterUtilisateurDepuisStorage();
   }
 
