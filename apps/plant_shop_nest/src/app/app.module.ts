@@ -13,13 +13,13 @@ import { AuthModule } from './auth/auth.module';
 // # Module principal
 @Module({
   imports: [
-    ...(process.env.SERVE_SSR === 'true' ? [AngularModule] : []),
     PrismaModule,
     UsersModule,
     PlantsModule,
     OrdersModule,
     OrderItemsModule,
     AuthModule,
+    ...(process.env.SERVE_SSR === 'true' ? [AngularModule] : []),
   ],
   controllers: [AppController],
   providers: [AppService],

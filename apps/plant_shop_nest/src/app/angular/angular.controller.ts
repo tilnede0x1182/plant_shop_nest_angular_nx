@@ -3,6 +3,8 @@ import { Request, Response } from 'express';
 import { join } from 'path';
 import * as express from 'express';
 
+const isSSR = process.env.SERVE_SSR === 'true';
+
 @Controller('')
 export class AngularController {
   private distFolder = join(
@@ -12,19 +14,29 @@ export class AngularController {
 
   constructor() {}
 
-  @Get('')
+  @Get()
   serveRoot(@Res() res: Response) {
+    if (!isSSR) return res.status(404).send('Not Found');
     res.sendFile(join(this.distFolder, 'index.html'));
   }
 
   @All('*')
   serveAngular(@Req() req: Request, @Res() res: Response) {
-    // Si l'URL commence par /, on ne fait rien
-    if (req.url.startsWith('/')) {
+    if (!isSSR) {
+      return res.status(404).send('Not Found');
+    }
+
+    const url = req.url;
+
+    // Laisser passer API et assets statiques (js, css, images, icônes)
+    if (
+      url.startsWith('/api') ||
+      url.match(/\.(?:js|css|ico|png|jpg|jpeg|gif|svg|webp|woff2?|ttf)$/)
+    ) {
       return;
     }
 
-    // Sinon, on sert l'application Angular
-    res.sendFile(join(this.distFolder, 'index.html'));
+    // Tout le reste → SSR Angular
+    return res.sendFile(join(this.distFolder, 'index.html'));
   }
 }
