@@ -23,8 +23,11 @@ export function app(): express.Express {
   server.set('view engine', 'html');
   server.set('views', distFolder);
 
-  // Example Express Rest API endpoints
-  // server.get('//**', (req, res) => { });
+  // Serve favicon explicitly (évite tout blocage potentiel en SSR)
+  server.get('/favicon.ico', (req, res) => {
+    res.sendFile(join(distFolder, 'favicon.ico'));
+  });
+
   // Serve static files from /browser
   server.get(
     '*.*',

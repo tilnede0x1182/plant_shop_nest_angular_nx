@@ -18,7 +18,11 @@
             "polyfills": [],
             "tsConfig": "apps/plant-shop-angular-universal/tsconfig.app.json",
             "assets": [
-              "apps/plant-shop-angular-universal/src/favicon.ico",
+              {
+                "glob": "**/*",
+                "input": "apps/plant-shop-angular-universal/public",
+                "output": "/"
+              },
               "apps/plant-shop-angular-universal/src/assets"
             ],
             "styles": [

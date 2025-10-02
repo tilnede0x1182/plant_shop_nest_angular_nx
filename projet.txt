@@ -569,7 +569,7 @@ export default [
         "assets": [
           {
             "glob": "**/*",
-            "input": "apps/plant-shop-angular-universal/public"
+            "input": "apps/plant-shop-angular-universal/public",
           }
         ],
         "styles": [
@@ -1689,8 +1689,8 @@ export class CartComponent {
   private lineTotals: Record<number, number> = {};
   private lineTimers: Record<number, any> = {};
 
-  ngOnInit() {
-    this.refresh();
+  ngOnInit(): void {
+    this.refresh(true);
   }
 
   private scheduleTotalUpdate() {
@@ -1714,9 +1714,25 @@ export class CartComponent {
     }, 300);
   }
 
-  refresh() {
+  refresh(initial: boolean = false) {
     this.items = this.cart.getAll();
-    this.scheduleTotalUpdate();
+
+    if (initial) {
+      // premier affichage → calcul instantané
+      this.totalValue = this.items.reduce(
+        (sum, i) => sum + i.price * i.quantity,
+        0
+      );
+      for (const item of this.items) {
+        this.lineTotals[item.id] = item.price * item.quantity;
+      }
+    } else {
+      // sinon → application du délai de 300 ms
+      this.scheduleTotalUpdate();
+      for (const item of this.items) {
+        this.scheduleLineTotalUpdate(item);
+      }
+    }
   }
 
   increment(item: CartItem) {
@@ -2775,14 +2791,13 @@ export class UserProfileComponent {
 			</tbody>
 		</table>
 
-		<div class="d-flex justify-content-between align-items-center mt-3">
-			<button class="btn btn-outline-secondary" (click)="clear()">Vider le panier</button>
-			<div class="text-end">
-				<strong>Total : {{ total() }} €</strong>
-				<a class="btn btn-primary ms-3" routerLink="/orders/new">
-					Passer la commande
-				</a>
-			</div>
+		<!-- Ligne 1 : total -->
+		<p class="text-end fw-bold">Total : {{ total() }} €</p>
+
+		<!-- Ligne 2 : boutons -->
+		<div class="d-flex justify-content-between mt-2">
+			<button class="btn btn-outline-secondary btn-sm" (click)="clear()">Vider le panier</button>
+			<a class="btn btn-primary" routerLink="/orders/new">Passer la commande</a>
 		</div>
 	</div>
 </div>
@@ -5574,5 +5589,38 @@ export class ApiService {
     return this.http.delete<void>(`${this.base}/orders/${id}`);
   }
 }
+
+
+## Makefile
+
+run:
+	npm run dev
+
+run-dev-back:
+	npm run dev-back
+
+run-dev-front:
+	npm run dev-front
+
+test-e2e:
+	npm run test-e2e
+
+build:
+	npm run build
+
+test-routes:
+	npm run test-routes
+
+prod:
+	npm run start
+
+typage:
+	npx tsc --noEmit
+
+seed:
+	npx prisma db seed
+
+lint:
+	npm run lint
 
 

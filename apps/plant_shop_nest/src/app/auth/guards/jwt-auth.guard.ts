@@ -19,7 +19,12 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     const req = context.switchToHttp().getRequest();
     const path: string = req.path;
 
-    // ✅ route publique → accès libre
+    // 1. Autoriser TOUS les fichiers statiques (favicon, js, css, etc.)
+    if (path.includes('.')) {
+      return true;
+    }
+
+    // 2. Autoriser les routes publiques
     if (
       this.publicRoutes.some(
         (route) =>
@@ -29,7 +34,6 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
       return true;
     }
 
-    // sinon on laisse à AuthGuard('jwt') le soin de vérifier le token
     return super.canActivate(context);
   }
 
