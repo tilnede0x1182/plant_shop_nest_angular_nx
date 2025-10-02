@@ -6,8 +6,20 @@ import { AppModule } from './app/app.module';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // Configurez le préfixe global pour l'API + Validation globale DTO
+  // Préfixe strictement limité à /api/*
   app.setGlobalPrefix('api');
+
+  // En mode SSR, servir les assets Angular
+  if (process.env.SERVE_SSR === 'true') {
+    const express = require('express');
+    const { join } = require('path');
+    const browserDist = join(
+      process.cwd(),
+      'dist/apps/plant-shop-angular-universal/browser'
+    );
+    app.use(express.static(browserDist));
+  }
+
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,

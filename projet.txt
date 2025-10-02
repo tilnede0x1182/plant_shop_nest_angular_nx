@@ -98,6 +98,9 @@
 │   │   │   │           ├── user-profile-edit.component.css
 │   │   │   │           ├── user-profile-edit.component.html
 │   │   │   │           └── user-profile-edit.component.ts
+│   │   │   ├── environments
+│   │   │   │   ├── environment.prod.ts
+│   │   │   │   └── environment.ts
 │   │   │   ├── index.html
 │   │   │   ├── main.server.ts
 │   │   │   ├── main.ts
@@ -174,7 +177,6 @@
 ├── jest.config.ts
 ├── jest.preset.js
 ├── Makefile
-├── node
 ├── nx.json
 ├── package.json
 ├── pnpm-lock.yaml
@@ -190,6 +192,7 @@
 ├── prisma.config.ts
 ├── projet.txt
 ├── proxy.conf.json
+├── README_1.md
 ├── README.md
 ├── tests
 │   └── test_complet.js
@@ -199,7 +202,7 @@
 ├── users.txt
 └── vitest.workspace.ts
 
-53 directories, 144 files
+54 directories, 146 files
 
 # CONFIGURATION
 #
@@ -217,7 +220,7 @@
     "build-frontend": "nx build plant-shop-angular-universal --configuration=production",
     "build-backend": "nx build plant_shop_nest --configuration=production",
     "build": "npm run build-frontend && npm run build-backend",
-    "start": "SERVE_SSR=true PORT=4100 node dist/apps/plant_shop_nest/main.js",
+    "start": "SERVE_SSR=true PORT=4150 node dist/apps/plant_shop_nest/main.js",
     "test-routes": "node tests/test_complet.js"
   },
   "private": true,
@@ -3872,13 +3875,13 @@ import { AuthModule } from './auth/auth.module';
 // # Module principal
 @Module({
   imports: [
-    ...(process.env.SERVE_SSR === 'true' ? [AngularModule] : []),
     PrismaModule,
     UsersModule,
     PlantsModule,
     OrdersModule,
     OrderItemsModule,
     AuthModule,
+    ...(process.env.SERVE_SSR === 'true' ? [AngularModule] : []),
   ],
   controllers: [AppController],
   providers: [AppService],
@@ -4047,6 +4050,8 @@ import { Request, Response } from 'express';
 import { join } from 'path';
 import * as express from 'express';
 
+const isSSR = process.env.SERVE_SSR === 'true';
+
 @Controller('')
 export class AngularController {
   private distFolder = join(
@@ -4056,18 +4061,16 @@ export class AngularController {
 
   constructor() {}
 
-  @Get('')
+  @Get()
   serveRoot(@Res() res: Response) {
+		if (!isSSR) return res.status(404).send('Not Found');
     res.sendFile(join(this.distFolder, 'index.html'));
   }
 
   @All('*')
   serveAngular(@Req() req: Request, @Res() res: Response) {
-    // Si l'URL commence par /, on ne fait rien
-    if (req.url.startsWith('/')) {
-      return;
-    }
-
+    // Si l'URL commence par / et qu'on n'est pas en SSR, on ne fait rien
+    if (!isSSR) return res.status(404).send('Not Found');
     // Sinon, on sert l'application Angular
     res.sendFile(join(this.distFolder, 'index.html'));
   }
