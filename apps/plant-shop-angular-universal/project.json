@@ -18,7 +18,8 @@
         "assets": [
           {
             "glob": "**/*",
-            "input": "apps/plant-shop-angular-universal/public"
+            "input": "apps/plant-shop-angular-universal/public",
+            "output": "/"
           }
         ],
         "styles": [
