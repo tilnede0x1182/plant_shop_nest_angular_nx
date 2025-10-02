@@ -1396,26 +1396,28 @@ export const AdminGuard: CanActivateFn = () => {
 ## apps/plant-shop-angular-universal/src/app/auth/auth.guard.ts
 
 // # Importations
-import { Injectable, inject } from '@angular/core';
+import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { AuthService } from './auth.service';
+import { map, catchError } from 'rxjs/operators';
+import { of } from 'rxjs';
 
-// # Guard d'authentification
+// # Guard Auth
 export const AuthGuard: CanActivateFn = () => {
   const auth = inject(AuthService);
   const router = inject(Router);
 
-  return this.auth.getCurrentUser().pipe(
+  return auth.getCurrentUser().pipe(
     map((user: any) => {
       if (user) {
         return true;
       } else {
-        this.router.navigate(['/login']);
+        router.navigate(['/login']);
         return false;
       }
     }),
     catchError(() => {
-      this.router.navigate(['/login']);
+      router.navigate(['/login']);
       return of(false);
     })
   );
@@ -1450,7 +1452,7 @@ export const authInterceptor: HttpInterceptorFn = (
 // # Importations
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, BehaviorSubject } from 'rxjs';
+import { Observable, BehaviorSubject, tap } from 'rxjs';
 
 // # Service d'authentification
 @Injectable({ providedIn: 'root' })
@@ -1462,34 +1464,46 @@ export class AuthService {
 
   /** Enregistrer un utilisateur */
   register(email: string, password: string, name?: string): Observable<any> {
-    return this.http.post<any>(
-      `${this.apiUrl}/register`,
-      { email, password, name },
-      { withCredentials: true }
-    );
+    return this.http
+      .post<any>(
+        `${this.apiUrl}/register`,
+        { email, password, name },
+        { withCredentials: true }
+      )
+      .pipe(tap(() => this.refreshUser()));
   }
 
   /** Login utilisateur */
   login(email: string, password: string): Observable<any> {
-    return this.http.post<any>(
-      `${this.apiUrl}/login`,
-      { email, password },
-      { withCredentials: true }
-    );
+    return this.http
+      .post<any>(
+        `${this.apiUrl}/login`,
+        { email, password },
+        { withCredentials: true }
+      )
+      .pipe(tap(() => this.refreshUser()));
   }
 
   /** Logout */
   logout(): Observable<any> {
-    return this.http.post(
-      `${this.apiUrl}/logout`,
-      {},
-      { withCredentials: true }
-    );
+    return this.http
+      .post(`${this.apiUrl}/logout`, {}, { withCredentials: true })
+      .pipe(tap(() => this.user$.next(null)));
   }
 
   /** Récupérer l’utilisateur courant (via cookie httpOnly) */
   getCurrentUser(): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/me`, { withCredentials: true });
+    return this.http
+      .get<any>(`${this.apiUrl}/me`, { withCredentials: true })
+      .pipe(tap((user) => this.user$.next(user)));
+  }
+
+  /** Utilitaire interne : recharge l’utilisateur après login/register */
+  private refreshUser(): void {
+    this.getCurrentUser().subscribe({
+      next: (user) => this.user$.next(user),
+      error: () => this.user$.next(null),
+    });
   }
 }
 
@@ -1868,7 +1882,6 @@ import { CartService } from '../cart/cart.service';
 
 /**
  * Navbar – calquée sur Next (libellés/ordre identiques)
- * Sans modifier le backend ni autres services.
  */
 @Component({
   selector: 'app-navbar',
@@ -1887,53 +1900,31 @@ export class NavbarComponent implements OnInit {
   userId: number | null = null;
   estAdmin = false;
 
-  /**
-   * Init : abonne le compteur et lit l'utilisateur depuis l'API sécurisée
-   */
   ngOnInit(): void {
     // compteur panier (inchangé)
     this.cartService.cartCount$.subscribe(
       (count) => (this.nombreArticles = count)
     );
 
-    // récupération utilisateur courant depuis le backend
-    this.auth.getCurrentUser().subscribe({
-      next: (u) => {
-        this.userName = this.capitalizeName(String(u?.name || ''));
-        this.userId = u?.id ?? null;
-        this.estAdmin = u?.admin === true;
-      },
-      error: () => {
-        this.userName = '';
-        this.userId = null;
-        this.estAdmin = false;
-      },
+    // écoute des changements utilisateur via BehaviorSubject uniquement
+    this.auth.user$.subscribe((u) => {
+      this.userName = this.capitalizeName(String(u?.name || ''));
+      this.userId = u?.id ?? null;
+      this.estAdmin = u?.admin === true;
     });
   }
 
-  /**
-   * Déconnexion standard
-   */
   logout(): void {
     this.auth.logout().subscribe({
       next: () => {
-        this.userName = '';
-        this.userId = null;
-        this.estAdmin = false;
         this.router.navigate(['/']);
       },
       error: () => {
-        this.userName = '';
-        this.userId = null;
-        this.estAdmin = false;
         this.router.navigate(['/']);
       },
     });
   }
 
-  /**
-   * Capitalise "prenom nom" -> "Prenom Nom"
-   */
   private capitalizeName(name: string): string {
     return name
       .split(' ')
@@ -2160,7 +2151,7 @@ export class PlantsListComponent implements OnInit {
   private cartService = inject(CartService);
 
   protected plantes: Plante[] = [];
-  isAdmin = false; // <- propriété utilisée dans le template
+  estAdmin = false;
 
   /**
    * Charge la liste des plantes et récupère le rôle admin
@@ -2172,9 +2163,9 @@ export class PlantsListComponent implements OnInit {
         .sort((a, b) => a.name.localeCompare(b.name));
     });
 
-    // Vérifie si l'utilisateur courant est admin
-    this.auth.getCurrentUser().subscribe((user) => {
-      this.isAdmin = !!user && user.admin === true;
+    // Suit en continu l'état de l'utilisateur
+    this.auth.user$.subscribe((user) => {
+      this.estAdmin = !!user && user.admin === true;
     });
   }
 
@@ -4065,13 +4056,12 @@ export class AuthController {
       maxAge: 1000 * 60 * 60 * 24,
     });
 
-    return (req as any).user;
+    return { user }; // ✅ on renvoie simplement l'utilisateur
   }
 
   /** Déconnexion */
   @Post('logout')
   async logout(@Res({ passthrough: true }) res: Response) {
-    // Efface le cookie
     res.clearCookie('jwt');
     return { message: 'Déconnecté' };
   }
@@ -4080,7 +4070,13 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Get('me')
   async me(@Req() req: Request) {
-    return (req as any).user;
+    const user = (req as any).user;
+    return {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      admin: user.admin,
+    };
   }
 }
 
@@ -4483,6 +4479,7 @@ export class AuthService {
       sub: utilisateur.id,
       email: utilisateur.email,
       admin: utilisateur.admin,
+      name: utilisateur.name,
     };
     return {
       access_token: this.jwtService.sign(payload),
@@ -4501,6 +4498,7 @@ export class AuthService {
       sub: utilisateur.id,
       email: utilisateur.email,
       admin: utilisateur.admin,
+      name: utilisateur.name,
     };
     return {
       access_token: this.jwtService.sign(payload),
@@ -5213,7 +5211,7 @@ export class App {}
 // # Importations
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, BehaviorSubject } from 'rxjs';
+import { Observable, BehaviorSubject, tap } from 'rxjs';
 
 // # Service d'authentification
 @Injectable({ providedIn: 'root' })
@@ -5225,34 +5223,46 @@ export class AuthService {
 
   /** Enregistrer un utilisateur */
   register(email: string, password: string, name?: string): Observable<any> {
-    return this.http.post<any>(
-      `${this.apiUrl}/register`,
-      { email, password, name },
-      { withCredentials: true }
-    );
+    return this.http
+      .post<any>(
+        `${this.apiUrl}/register`,
+        { email, password, name },
+        { withCredentials: true }
+      )
+      .pipe(tap(() => this.refreshUser()));
   }
 
   /** Login utilisateur */
   login(email: string, password: string): Observable<any> {
-    return this.http.post<any>(
-      `${this.apiUrl}/login`,
-      { email, password },
-      { withCredentials: true }
-    );
+    return this.http
+      .post<any>(
+        `${this.apiUrl}/login`,
+        { email, password },
+        { withCredentials: true }
+      )
+      .pipe(tap(() => this.refreshUser()));
   }
 
   /** Logout */
   logout(): Observable<any> {
-    return this.http.post(
-      `${this.apiUrl}/logout`,
-      {},
-      { withCredentials: true }
-    );
+    return this.http
+      .post(`${this.apiUrl}/logout`, {}, { withCredentials: true })
+      .pipe(tap(() => this.user$.next(null)));
   }
 
   /** Récupérer l’utilisateur courant (via cookie httpOnly) */
   getCurrentUser(): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/me`, { withCredentials: true });
+    return this.http
+      .get<any>(`${this.apiUrl}/me`, { withCredentials: true })
+      .pipe(tap((user) => this.user$.next(user)));
+  }
+
+  /** Utilitaire interne : recharge l’utilisateur après login/register */
+  private refreshUser(): void {
+    this.getCurrentUser().subscribe({
+      next: (user) => this.user$.next(user),
+      error: () => this.user$.next(null),
+    });
   }
 }
 
