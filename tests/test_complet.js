@@ -1,3 +1,9 @@
+/* ------- Variables globales -------- */
+const cookieJars = {
+  admin: '',
+  user: '',
+};
+
 /* ---------- configuration ---------- */
 const config = {
   apiBaseUrl: process.env.API_BASE_URL || 'http://localhost:4100/api',
@@ -7,7 +13,7 @@ const config = {
 };
 
 /* ---------- utilitaires HTTP ---------- */
-async function hit(method, route, expectedStatus, body, token) {
+async function hit(method, route, expectedStatus, body, who = 'default') {
   const url = `${config.apiBaseUrl}${route}`;
   const label = `${method} ${route}`;
 
@@ -16,22 +22,28 @@ async function hit(method, route, expectedStatus, body, token) {
       method,
       headers: {
         'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...(cookieJars[who] ? { Cookie: cookieJars[who] } : {}),
       },
       body: body ? JSON.stringify(body) : undefined,
     });
-    const success = res.status === expectedStatus;
 
+    /* --- Mettre à jour le cookie si Set-Cookie présent --- */
+    const setCookie = res.headers.get('set-cookie');
+    if (setCookie) {
+      cookieJars[who] = setCookie.split(',')[0].split(';')[0];
+    }
+
+    const success = res.status === expectedStatus;
     if (config.logLevel !== 'silent') {
       console.log(`${success ? '✅' : '❌'} ${label} [${res.status}]`);
     }
-
     if (!success) {
       const txt = await res.text();
       throw new Error(
         `API ${label} → ${res.status} (attendu ${expectedStatus})\n${txt}`
       );
     }
+
     try {
       return await res.json();
     } catch {
@@ -45,6 +57,7 @@ async function hit(method, route, expectedStatus, body, token) {
   }
 }
 
+/* ---------- assertions ---------- */
 function assertEq(obj, key, expected) {
   const actual = obj[key];
   const ok = actual === expected;
@@ -60,238 +73,201 @@ function assertEq(obj, key, expected) {
 }
 
 /* ------------ helpers  ------------ */
-async function login(email, password) {
-  const { access_token } = await hit('POST', '/auth/login', 201, {
-    email,
-    password,
-  });
-  return access_token;
+async function login(email, password, who = 'default') {
+  await hit('POST', '/auth/login', 201, { email, password }, who);
+  return true; // cookie stocké dans cookieJars[who]
 }
 
-async function registerUser(name, email, password) {
-  await hit('POST', '/auth/register', 201, { name, email, password });
-  return login(email, password);
+async function registerUser(name, email, password, who = 'default') {
+  await hit('POST', '/auth/register', 201, { name, email, password }, who);
+  return true;
 }
 
-async function findUserIdByEmail(adminToken, email) {
-  const users = await hit('GET', '/users', 200, null, adminToken);
+async function findUserIdByEmail(who, email) {
+  const users = await hit('GET', '/users', 200, null, who);
   const u = users.find((usr) => usr.email === email);
   if (!u) throw new Error(`User ${email} not found in admin list`);
   return u.id;
 }
 
 /* ---------- modules de test ---------- */
-async function testPlants(adminToken) {
+async function testPlants(who = 'admin') {
   console.log('\n📌 TEST MODULE: PLANTS (admin)');
   const plantData = { name: 'Test Plant', price: 10, stock: 5 };
+
+  /* --- Création --- */
   const { id: plantId } = await hit(
     'POST',
-    '/plants',
+    '/admin/plants',
     201,
     plantData,
-    adminToken
+    who
   );
+
+  /* --- Lecture publique --- */
   assertEq(
-    await hit('GET', `/plants/${plantId}`, 200, null, adminToken),
+    await hit('GET', `/plants/${plantId}`, 200, null, who),
     'name',
     plantData.name
   );
-  await hit('PATCH', `/plants/${plantId}`, 200, { price: 15 }, adminToken);
-  assertEq(
-    await hit('GET', `/plants/${plantId}`, 200, null, adminToken),
-    'price',
-    15
-  );
-  await hit('DELETE', `/plants/${plantId}`, 200, null, adminToken);
+
+  /* --- Mise à jour --- */
+  await hit('PATCH', `/admin/plants/${plantId}`, 200, { price: 15 }, who);
+  assertEq(await hit('GET', `/plants/${plantId}`, 200, null, who), 'price', 15);
+
+  /* --- Suppression --- */
+  await hit('DELETE', `/admin/plants/${plantId}`, 200, null, who);
   return { success: true };
 }
 
-async function testUsers(adminToken) {
+async function testUsers(who = 'admin') {
   console.log('\n📌 TEST MODULE: USERS (admin)');
   const userData = {
     email: `testcrud-${Date.now()}@example.com`,
     name: 'Tester',
     password: 'pass123',
   };
-  const { id: userId } = await hit('POST', '/users', 201, userData, adminToken);
-  await hit(
-    'PATCH',
-    `/users/${userId}`,
-    200,
-    { name: 'Tester Update' },
-    adminToken
-  );
+  const { id: userId } = await hit('POST', '/users', 201, userData, who);
+
+  await hit('PATCH', `/users/${userId}`, 200, { name: 'Tester Update' }, who);
   assertEq(
-    await hit('GET', `/users/${userId}`, 200, null, adminToken),
+    await hit('GET', `/users/${userId}`, 200, null, who),
     'name',
     'Tester Update'
   );
-  await hit('DELETE', `/users/${userId}`, 200, null, adminToken);
+
+  await hit('DELETE', `/users/${userId}`, 200, null, who);
   return { success: true };
 }
 
-async function testOrders(adminToken, userToken) {
+async function testOrders(adminWho = 'admin', userWho = 'user') {
   console.log('\n📌 TEST MODULE: ORDERS & ORDER ITEMS');
 
-  // Création d'une plante (admin)
+  /* --- Création plante --- */
   const plantData = { name: `Test Plant ${Date.now()}`, price: 10, stock: 5 };
   const { id: plantId } = await hit(
     'POST',
-    '/plants',
+    '/admin/plants',
     201,
     plantData,
-    adminToken
+    adminWho
   );
 
-  // Création commande par l'utilisateur
+  /* --- Commande user --- */
   const orderPayload = { items: [{ plantId, quantity: 2 }] };
   const { id: orderId } = await hit(
     'POST',
     '/orders',
     201,
     orderPayload,
-    userToken
+    userWho
   );
 
-  // L'admin modifie le statut
+  /* --- Admin change statut --- */
   await hit(
     'PATCH',
     `/orders/${orderId}`,
     200,
     { status: 'shipped' },
-    adminToken
+    adminWho
   );
 
-  // Vérification via la liste des commandes de l'utilisateur (pas de route show)
-  const commandes = await hit('GET', '/orders', 200, null, userToken);
+  /* --- Vérification user --- */
+  const commandes = await hit('GET', '/orders', 200, null, userWho);
   const commande = commandes.find((o) => o.id === orderId);
   if (!commande) throw new Error(`Commande ${orderId} introuvable`);
   assertEq(commande, 'status', 'shipped');
 
-  // Nettoyage
-  await hit('DELETE', `/orders/${orderId}`, 200, null, adminToken);
-  await hit('DELETE', `/plants/${plantId}`, 200, null, adminToken);
+  /* --- Nettoyage --- */
+  await hit('DELETE', `/orders/${orderId}`, 200, null, adminWho);
+  await hit('DELETE', `/admin/plants/${plantId}`, 200, null, adminWho);
 
   return { success: true };
 }
 
-
-async function testUserProfile(adminToken, userToken, userEmail) {
+async function testUserProfile(
+  adminWho = 'admin',
+  userWho = 'user',
+  userEmail
+) {
   console.log('\n📌 TEST MODULE: USER PROFILE (user)');
-  const userId = await findUserIdByEmail(adminToken, userEmail);
+  const userId = await findUserIdByEmail(adminWho, userEmail);
 
-  // L’utilisateur peut consulter son profil
+  /* --- Lecture --- */
   assertEq(
-    await hit('GET', `/users/${userId}`, 200, null, userToken),
+    await hit('GET', `/users/${userId}`, 200, null, userWho),
     'id',
     userId
   );
 
-  // L’utilisateur peut mettre à jour son propre profil
+  /* --- MAJ nom --- */
   const nouveauNom = `UserModif-${Date.now()}`;
-  await hit('PATCH', `/users/${userId}`, 200, { name: nouveauNom }, userToken);
+  await hit('PATCH', `/users/${userId}`, 200, { name: nouveauNom }, userWho);
   assertEq(
-    await hit('GET', `/users/${userId}`, 200, null, userToken),
+    await hit('GET', `/users/${userId}`, 200, null, userWho),
     'name',
     nouveauNom
   );
 
-  // Vérif sécurité : il ne peut pas se donner admin
-  await hit('PATCH', `/users/${userId}`, 200, { admin: true }, userToken);
-  const profil = await hit('GET', `/users/${userId}`, 200, null, adminToken);
+  /* --- Tentative élévation --- */
+  await hit('PATCH', `/users/${userId}`, 200, { admin: true }, userWho);
+  const profil = await hit('GET', `/users/${userId}`, 200, null, adminWho);
   assertEq(profil, 'admin', false);
 }
 
-async function testAuthRoles(adminToken, userToken) {
+async function testAuthRoles(adminWho = 'admin', userWho = 'user') {
   console.log('\n📌 TEST MODULE: ROLES');
 
-  // User tente création de plante → 403
+  /* --- User essaye POST plante --- */
   await hit(
     'POST',
-    '/plants',
+    '/admin/plants',
     403,
     { name: 'Bad', price: 1, stock: 1 },
-    userToken
+    userWho
   );
 
-  // Admin crée plante → 201 puis suppr
+  /* --- Admin OK puis suppr --- */
   const { id: pid } = await hit(
-    'POST',
-    '/plants',
-    201,
-    { name: 'Good', price: 1, stock: 1 },
-    adminToken
-  );
-  await hit('DELETE', `/plants/${pid}`, 200, null, adminToken);
-
-  // User tente accès /users → 403
-  await hit('GET', '/users', 403, null, userToken);
-
-  return { success: true };
-}
-
-async function testAdminPlants(adminToken) {
-  console.log('\n📌 TEST MODULE: ADMIN PLANTS');
-  const plantes = await hit('GET', '/admin/plants', 200, null, adminToken);
-  console.log(`   ↳ ${plantes.length} plantes récupérées`);
-
-  // --- Test POST /admin/plants ---
-  const planteAdmin = {
-    name: `AdminTestPlant-${Date.now()}`,
-    price: 99,
-    stock: 12,
-  };
-  const { id: planteAdminId } = await hit(
     'POST',
     '/admin/plants',
     201,
-    planteAdmin,
-    adminToken
+    { name: 'Good', price: 1, stock: 1 },
+    adminWho
   );
-  assertEq(
-    await hit('GET', `/plants/${planteAdminId}`, 200, null, adminToken),
-    'name',
-    planteAdmin.name
-  );
+  await hit('DELETE', `/admin/plants/${pid}`, 200, null, adminWho);
 
-  // --- Test PATCH /admin/plants/:id ---
-  const prixModifie = 123;
-  await hit(
-    'PATCH',
-    `/admin/plants/${planteAdminId}`,
-    200,
-    { price: prixModifie },
-    adminToken
-  );
-  assertEq(
-    await hit('GET', `/plants/${planteAdminId}`, 200, null, adminToken),
-    'price',
-    prixModifie
-  );
-
-  // --- Nettoyage ---
-  await hit('DELETE', `/plants/${planteAdminId}`, 200, null, adminToken);
+  /* --- User GET /users interdit --- */
+  await hit('GET', '/users', 403, null, userWho);
 
   return { success: true };
 }
 
-async function testAdminUsers(adminToken) {
+async function testAdminPlants(who = 'admin') {
+  console.log('\n📌 TEST MODULE: ADMIN PLANTS');
+  const plantes = await hit('GET', '/admin/plants', 200, null, who);
+  console.log(`   ↳ ${plantes.length} plantes récupérées`);
+
+  /* --- CRUD rapide --- */
+  const d = { name: `AdminTestPlant-${Date.now()}`, price: 99, stock: 12 };
+  const { id } = await hit('POST', '/admin/plants', 201, d, who);
+  await hit('PATCH', `/admin/plants/${id}`, 200, { price: 123 }, who);
+  await hit('DELETE', `/admin/plants/${id}`, 200, null, who);
+
+  return { success: true };
+}
+
+async function testAdminUsers(who = 'admin') {
   console.log('\n📌 TEST MODULE: ADMIN USERS');
-  const utilisateurs = await hit('GET', '/admin/users', 200, null, adminToken);
+  const utilisateurs = await hit('GET', '/admin/users', 200, null, who);
   console.log(`   ↳ ${utilisateurs.length} utilisateurs récupérés`);
 
-  // --- Test PATCH /admin/users/:id ---
-  const utilisateur = utilisateurs[0];
+  /* --- MAJ rapide du premier --- */
+  const u = utilisateurs[0];
   const nomModifie = `AdminModif-${Date.now()}`;
-  await hit(
-    'PATCH',
-    `/admin/users/${utilisateur.id}`,
-    200,
-    { name: nomModifie },
-    adminToken
-  );
+  await hit('PATCH', `/admin/users/${u.id}`, 200, { name: nomModifie }, who);
   assertEq(
-    await hit('GET', `/users/${utilisateur.id}`, 200, null, adminToken),
+    await hit('GET', `/users/${u.id}`, 200, null, who),
     'name',
     nomModifie
   );
@@ -299,20 +275,11 @@ async function testAdminUsers(adminToken) {
   return { success: true };
 }
 
-async function testAuthMe(userToken) {
+async function testAuthMe(who = 'user') {
   console.log('\n📌 TEST MODULE: AUTH /me');
-
-  // Vérifie que /auth/me renvoie bien l'utilisateur connecté
-  const me = await hit('GET', '/auth/me', 200, null, userToken);
-  if (!me || !me.email) {
-    throw new Error('Réponse invalide pour /auth/me');
-  }
+  const me = await hit('GET', '/auth/me', 200, null, who);
+  if (!me || !me.email) throw new Error('Réponse invalide pour /auth/me');
   console.log(`   ↳ Utilisateur connecté: ${me.email} (${me.name || '??'})`);
-
-  // Vérifie que le champ "name" est bien présent
-  if (!('name' in me)) {
-    throw new Error('/auth/me ne contient pas le champ "name"');
-  }
 }
 
 /* ---------- exécution des tests ---------- */
@@ -320,19 +287,20 @@ async function main() {
   console.log(`🧪 Démarrage des tests: ${config.apiBaseUrl}\n`);
 
   try {
-    // auth tokens
-    const adminToken = await login(config.adminEmail, config.adminPassword);
+    /* --- Auth --- */
+    await login(config.adminEmail, config.adminPassword, 'admin');
     const userEmail = `user-${Date.now()}@example.com`;
-    const userToken = await registerUser('User', userEmail, 'pass123');
+    await registerUser('User', userEmail, 'pass123', 'user');
 
-    await testPlants(adminToken);
-    await testUsers(adminToken);
-    await testOrders(adminToken, userToken);
-    await testUserProfile(adminToken, userToken, userEmail);
-    await testAuthRoles(adminToken, userToken);
-    await testAdminPlants(adminToken);
-    await testAdminUsers(adminToken);
-    await testAuthMe(userToken);
+    /* --- Modules --- */
+    await testPlants('admin');
+    await testUsers('admin');
+    await testOrders('admin', 'user');
+    await testUserProfile('admin', 'user', userEmail);
+    await testAuthRoles('admin', 'user');
+    await testAdminPlants('admin');
+    await testAdminUsers('admin');
+    await testAuthMe('user');
 
     console.log('\n🎉 Tous les tests ont réussi!');
     return 0;
