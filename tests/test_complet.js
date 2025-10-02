@@ -299,6 +299,22 @@ async function testAdminUsers(adminToken) {
   return { success: true };
 }
 
+async function testAuthMe(userToken) {
+  console.log('\n📌 TEST MODULE: AUTH /me');
+
+  // Vérifie que /auth/me renvoie bien l'utilisateur connecté
+  const me = await hit('GET', '/auth/me', 200, null, userToken);
+  if (!me || !me.email) {
+    throw new Error('Réponse invalide pour /auth/me');
+  }
+  console.log(`   ↳ Utilisateur connecté: ${me.email} (${me.name || '??'})`);
+
+  // Vérifie que le champ "name" est bien présent
+  if (!('name' in me)) {
+    throw new Error('/auth/me ne contient pas le champ "name"');
+  }
+}
+
 /* ---------- exécution des tests ---------- */
 async function main() {
   console.log(`🧪 Démarrage des tests: ${config.apiBaseUrl}\n`);
@@ -316,6 +332,7 @@ async function main() {
     await testAuthRoles(adminToken, userToken);
     await testAdminPlants(adminToken);
     await testAdminUsers(adminToken);
+    await testAuthMe(userToken);
 
     console.log('\n🎉 Tous les tests ont réussi!');
     return 0;
