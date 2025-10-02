@@ -1,7 +1,7 @@
 // # Importations
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, tap } from 'rxjs';
+import { Observable, tap, BehaviorSubject } from 'rxjs';
 
 export type AuthResponse = {
   access_token: string;
@@ -14,6 +14,7 @@ export class AuthService {
   private apiUrl = '/api/auth'; // proxy -> backend Nest
   private tokenKey = 'jwt_token';
   private userKey = 'current_user';
+  user$ = new BehaviorSubject<any | null>(null);
 
   constructor(private http: HttpClient) {}
 
@@ -44,7 +45,8 @@ export class AuthService {
       .pipe(
         tap((res) => {
           this.storeToken(res.access_token);
-          this.storeUser(res.user);
+          localStorage.setItem('current_user', JSON.stringify(res.user));
+          this.user$.next(res.user); // <-- NOTIFIER LA NAVBAR
         })
       );
   }
@@ -52,7 +54,8 @@ export class AuthService {
   /** Logout */
   logout() {
     localStorage.removeItem(this.tokenKey);
-    localStorage.removeItem(this.userKey);
+    localStorage.removeItem('current_user');
+    this.user$.next(null);
   }
 
   /** Vérifier si connecté */

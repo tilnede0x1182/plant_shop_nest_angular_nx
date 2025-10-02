@@ -2006,8 +2006,8 @@ export class OrderNewComponent {
       return;
     }
 
-    // ⚠️ à remplacer: userId doit venir de l’auth utilisateur
-    this.api.creerCommande({ userId: 0, items }).subscribe({
+    // userId est injecté côté backend via le JWT
+    this.api.creerCommande({ items }).subscribe({
       next: (res) => {
         this.message = `✅ Commande #${res.id} créée`;
         this.cart.clear();
