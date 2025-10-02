@@ -1,3 +1,14 @@
+
+Introduction :
+
+Note sur Nx :
+	J'ai utilisé Nx pour essayer de simplifier le SSR, mais je ne suis pas sûr que c'était indispensable.
+
+Information pour les tests des routes du backend Nest :
+
+Pour effectier le test End-to-end des routes, lancer les serveur Nest en mode test (make test-e2e), puis lancer le test dans une second terminal avec make test-routes.
+___
+
 # Plant Shop – Angular + NestJS (Nx)
 
 Magasin de plantes complet avec frontend Angular (SSR via Angular Universal) et backend NestJS, orchestrés avec Nx.
@@ -62,6 +73,7 @@ tests/ → Scénarios de test complet
 - **Backend** : NestJS 11, Prisma, JWT Auth
 - **Monorepo** : Nx 21
 - **BDD** : PostgreSQL via Prisma Client
+- **Tests** : Vitest + Jest
 
 ---
 

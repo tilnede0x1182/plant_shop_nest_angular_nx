@@ -570,6 +570,7 @@ export default [
           {
             "glob": "**/*",
             "input": "apps/plant-shop-angular-universal/public",
+            "output": "/"
           }
         ],
         "styles": [
