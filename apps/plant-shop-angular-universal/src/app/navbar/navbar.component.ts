@@ -7,7 +7,6 @@ import { CartService } from '../cart/cart.service';
 
 /**
  * Navbar – calquée sur Next (libellés/ordre identiques)
- * Sans modifier le backend ni autres services.
  */
 @Component({
   selector: 'app-navbar',
@@ -26,53 +25,31 @@ export class NavbarComponent implements OnInit {
   userId: number | null = null;
   estAdmin = false;
 
-  /**
-   * Init : abonne le compteur et lit l'utilisateur depuis l'API sécurisée
-   */
   ngOnInit(): void {
     // compteur panier (inchangé)
     this.cartService.cartCount$.subscribe(
       (count) => (this.nombreArticles = count)
     );
 
-    // récupération utilisateur courant depuis le backend
-    this.auth.getCurrentUser().subscribe({
-      next: (u) => {
-        this.userName = this.capitalizeName(String(u?.name || ''));
-        this.userId = u?.id ?? null;
-        this.estAdmin = u?.admin === true;
-      },
-      error: () => {
-        this.userName = '';
-        this.userId = null;
-        this.estAdmin = false;
-      },
+    // écoute des changements utilisateur via BehaviorSubject uniquement
+    this.auth.user$.subscribe((u) => {
+      this.userName = this.capitalizeName(String(u?.name || ''));
+      this.userId = u?.id ?? null;
+      this.estAdmin = u?.admin === true;
     });
   }
 
-  /**
-   * Déconnexion standard
-   */
   logout(): void {
     this.auth.logout().subscribe({
       next: () => {
-        this.userName = '';
-        this.userId = null;
-        this.estAdmin = false;
         this.router.navigate(['/']);
       },
       error: () => {
-        this.userName = '';
-        this.userId = null;
-        this.estAdmin = false;
         this.router.navigate(['/']);
       },
     });
   }
 
-  /**
-   * Capitalise "prenom nom" -> "Prenom Nom"
-   */
   private capitalizeName(name: string): string {
     return name
       .split(' ')
