@@ -118,9 +118,6 @@
 │       ├── project.json
 │       ├── src
 │       │   ├── app
-│       │   │   ├── angular
-│       │   │   │   ├── angular.controller.ts
-│       │   │   │   └── angular.module.ts
 │       │   │   ├── app.controller.spec.ts
 │       │   │   ├── app.controller.ts
 │       │   │   ├── app.module.ts
@@ -132,6 +129,7 @@
 │       │   │   │   ├── auth.service.ts
 │       │   │   │   ├── guards
 │       │   │   │   │   └── jwt-auth.guard.ts
+│       │   │   │   ├── jwt-auth.guard.ts
 │       │   │   │   ├── jwt.strategy.ts
 │       │   │   │   ├── local.strategy.ts
 │       │   │   │   ├── roles.decorator.ts
@@ -202,7 +200,7 @@
 ├── users.txt
 └── vitest.workspace.ts
 
-54 directories, 146 files
+53 directories, 145 files
 
 # CONFIGURATION
 #
@@ -215,7 +213,7 @@
   "scripts": {
     "dev-back": "SERVE_SSR=false PORT=4100 nx serve plant_shop_nest",
     "dev-front": "nx serve plant-shop-angular-universal --port=8300 --proxy-config proxy.conf.json",
-		"test-e2e": "SERVE_SSR=false PORT=4100 nx serve plant_shop_nest",
+    "test-e2e": "SERVE_SSR=false PORT=4100 nx serve plant_shop_nest",
     "test-routes": "node tests/test_complet.js",
     "build-backend": "nx build plant_shop_nest --configuration=production",
     "build-frontend": "nx build plant-shop-angular-universal --configuration=production",
@@ -243,6 +241,7 @@
     "bootstrap": "^5.3.8",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.2",
+    "cookie-parser": "^1.4.7",
     "express": "^4.21.2",
     "passport-jwt": "^4.0.1",
     "passport-local": "^1.0.0",
@@ -283,6 +282,7 @@
     "@swc/core": "~1.5.7",
     "@swc/helpers": "~0.5.11",
     "@types/bcryptjs": "^3.0.0",
+    "@types/cookie-parser": "^1.4.9",
     "@types/express": "^4.17.21",
     "@types/jest": "^30.0.0",
     "@types/node": "20.19.9",
@@ -1368,31 +1368,28 @@ export class App {}
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { AuthService } from './auth.service';
+import { map, catchError } from 'rxjs/operators';
+import { of } from 'rxjs';
 
 // # Guard Admin
 export const AdminGuard: CanActivateFn = () => {
   const auth = inject(AuthService);
   const router = inject(Router);
 
-  // Vérifier si connecté + admin
-  const token = auth.getToken();
-  if (!token) {
-    router.navigate(['/login']);
-    return false;
-  }
-
-  try {
-    // Décoder payload du JWT
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    if (payload.admin === true) {
-      return true;
-    }
-  } catch {
-    // token invalide → retour login
-  }
-
-  router.navigate(['/']);
-  return false;
+  return auth.getCurrentUser().pipe(
+    map((user: any) => {
+      if (user && user.admin === true) {
+        return true;
+      } else {
+        router.navigate(['/login']);
+        return false;
+      }
+    }),
+    catchError(() => {
+      router.navigate(['/login']);
+      return of(false);
+    })
+  );
 };
 
 
@@ -1408,12 +1405,20 @@ export const AuthGuard: CanActivateFn = () => {
   const auth = inject(AuthService);
   const router = inject(Router);
 
-  if (auth.isAuthenticated()) {
-    return true;
-  } else {
-    router.navigate(['/login']);
-    return false;
-  }
+  return this.auth.getCurrentUser().pipe(
+    map((user: any) => {
+      if (user) {
+        return true;
+      } else {
+        this.router.navigate(['/login']);
+        return false;
+      }
+    }),
+    catchError(() => {
+      this.router.navigate(['/login']);
+      return of(false);
+    })
+  );
 };
 
 
@@ -1427,35 +1432,16 @@ import {
 } from '@angular/common/http';
 
 /**
- * Ajoute le JWT au header Authorization si présent en localStorage
- * Gère SSR en vérifiant la présence de window
- * @req requête initiale
- * @next suite de la chaîne d'intercepteurs
+ * Intercepteur Auth
+ * - On ne gère plus de JWT en localStorage
+ * - On force uniquement withCredentials pour inclure le cookie httpOnly
  */
 export const authInterceptor: HttpInterceptorFn = (
   req: HttpRequest<unknown>,
   next: HttpHandlerFn
 ) => {
-  // # Fonctions utilitaires
-  const isBrowser = typeof window !== 'undefined';
-  const getToken = (): string | null => {
-    if (!isBrowser) return null;
-    try {
-      return localStorage.getItem('jwt_token');
-    } catch (StorageException) {
-      return null;
-    }
-  };
-
-  // # Interception principale
-  const jeton = getToken();
-  if (!jeton) return next(req);
-
-  const requeteAvecAuth = req.clone({
-    setHeaders: { Authorization: `Bearer ${jeton}` },
-  });
-
-  return next(requeteAvecAuth);
+  const requeteAvecCreds = req.clone({ withCredentials: true });
+  return next(requeteAvecCreds);
 };
 
 
@@ -1464,101 +1450,46 @@ export const authInterceptor: HttpInterceptorFn = (
 // # Importations
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, tap, BehaviorSubject } from 'rxjs';
-
-export type AuthResponse = {
-  access_token: string;
-  user: { id: number; email: string; admin?: boolean };
-};
+import { Observable, BehaviorSubject } from 'rxjs';
 
 // # Service d'authentification
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private apiUrl = '/api/auth'; // proxy -> backend Nest
-  private tokenKey = 'jwt_token';
-  private userKey = 'current_user';
   user$ = new BehaviorSubject<any | null>(null);
 
   constructor(private http: HttpClient) {}
 
-  private storeUser(user: any) {
-    localStorage.setItem(this.userKey, JSON.stringify(user));
-  }
-
   /** Enregistrer un utilisateur */
-  register(
-    email: string,
-    password: string,
-    name?: string
-  ): Observable<AuthResponse> {
-    return this.http
-      .post<AuthResponse>(`${this.apiUrl}/register`, { email, password, name })
-      .pipe(
-        tap((res) => {
-          this.storeToken(res.access_token);
-          this.storeUser(res.user);
-        })
-      );
+  register(email: string, password: string, name?: string): Observable<any> {
+    return this.http.post<any>(
+      `${this.apiUrl}/register`,
+      { email, password, name },
+      { withCredentials: true }
+    );
   }
 
   /** Login utilisateur */
-  login(email: string, password: string): Observable<AuthResponse> {
-    return this.http
-      .post<AuthResponse>(`${this.apiUrl}/login`, { email, password })
-      .pipe(
-        tap((res) => {
-          this.storeToken(res.access_token);
-          localStorage.setItem('current_user', JSON.stringify(res.user));
-          this.user$.next(res.user); // <-- NOTIFIER LA NAVBAR
-        })
-      );
+  login(email: string, password: string): Observable<any> {
+    return this.http.post<any>(
+      `${this.apiUrl}/login`,
+      { email, password },
+      { withCredentials: true }
+    );
   }
 
   /** Logout */
-  logout() {
-    localStorage.removeItem(this.tokenKey);
-    localStorage.removeItem('current_user');
-    this.user$.next(null);
+  logout(): Observable<any> {
+    return this.http.post(
+      `${this.apiUrl}/logout`,
+      {},
+      { withCredentials: true }
+    );
   }
 
-  /** Vérifier si connecté */
-  isAuthenticated(): boolean {
-    const token = localStorage.getItem(this.tokenKey);
-    const user = this.getUser();
-    const res = !!token && !!user;
-    // console.log('[AuthService FRONT] isAuthenticated →', res, { token, user });
-    return res;
-  }
-
-  /** Récupérer le token */
-  getToken(): string | null {
-    return localStorage.getItem(this.tokenKey);
-  }
-
-  getUser(): any | null {
-    const data = localStorage.getItem(this.userKey);
-    return data ? JSON.parse(data) : null;
-  }
-
-  isAdmin(): boolean {
-    // console.log('[AuthService FRONT] Vérification isAdmin()');
-
-    const user = this.getUser();
-    // console.log('[AuthService FRONT] état interne user =', user);
-
-    if (!user) {
-      // console.log('[AuthService FRONT] Pas connecté → isAdmin=false');
-      return false;
-    }
-
-    const resultat = user.admin === true;
-    // console.log(`[AuthService FRONT] email=${user.email}, admin=${user.admin} → isAdmin=${resultat}`);
-    return resultat;
-  }
-
-  /** Stocker le token */
-  private storeToken(token: string) {
-    localStorage.setItem(this.tokenKey, token);
+  /** Récupérer l’utilisateur courant (via cookie httpOnly) */
+  getCurrentUser(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/me`, { withCredentials: true });
   }
 }
 
@@ -1590,9 +1521,7 @@ export class LoginComponent {
 
   onSubmit() {
     this.auth.login(this.email, this.password).subscribe({
-      next: (data) => {
-        localStorage.setItem('user', JSON.stringify(data.user));
-        localStorage.setItem('token', data.access_token);
+      next: () => {
         this.message = 'Connexion réussie ✅';
         this.router.navigate(['/plants']);
       },
@@ -1655,7 +1584,7 @@ export class RegisterComponent {
           name: this.name,
           email: this.email,
         });
-        this.router.navigate(['/login']);
+        this.router.navigate(['/plants']);
       },
       error: (err) => {
         this.message = '❌ Erreur lors de la création du compte';
@@ -1956,82 +1885,65 @@ export class NavbarComponent implements OnInit {
   nombreArticles = 0;
   userName = '';
   userId: number | null = null;
+  estAdmin = false;
 
   /**
-   * Init : abonne le compteur et lit l'utilisateur depuis storage (si dispo)
+   * Init : abonne le compteur et lit l'utilisateur depuis l'API sécurisée
    */
   ngOnInit(): void {
+    // compteur panier (inchangé)
     this.cartService.cartCount$.subscribe(
       (count) => (this.nombreArticles = count)
     );
 
-    // abonnement direct à l'état utilisateur
-    this.auth.user$.subscribe((u) => {
-      this.userName = this.capitalizeName(String(u?.name || ''));
-      this.userId = u?.id ?? null;
+    // récupération utilisateur courant depuis le backend
+    this.auth.getCurrentUser().subscribe({
+      next: (u) => {
+        this.userName = this.capitalizeName(String(u?.name || ''));
+        this.userId = u?.id ?? null;
+        this.estAdmin = u?.admin === true;
+      },
+      error: () => {
+        this.userName = '';
+        this.userId = null;
+        this.estAdmin = false;
+      },
     });
-
-    // garder pour hydrater si refresh navigateur
-    this.hydraterUtilisateurDepuisStorage();
-  }
-
-  /**
-   * Renvoie l'état d'auth tel que fourni par AuthService
-   */
-  get estConnecte(): boolean {
-    return this.auth.isAuthenticated();
-  }
-
-  /**
-   * Getteur de isAdmin
-   */
-  get estAdmin(): boolean {
-    return this.auth.isAdmin();
   }
 
   /**
    * Déconnexion standard
-   * - supprime token + utilisateur côté AuthService (déjà)
-   * - vide l'état local immédiatement pour mise à jour UI instantanée
    */
   logout(): void {
-    this.auth.logout();
-    // vider l'état local pour ne plus afficher le nom après logout
-    this.userName = '';
-    this.userId = null;
-    this.router.navigate(['/']);
-  }
-
-  /**
-   * Lecture user locale (sans toucher au backend)
-   * Tente 'user' puis 'currentUser' en local/sessionStorage
-   */
-  private hydraterUtilisateurDepuisStorage(): void {
-    if (typeof window === 'undefined') return;
-    // clé canonicalisée utilisée par AuthService
-    const brut =
-      localStorage.getItem('current_user') ||
-      sessionStorage.getItem('current_user');
-    if (!brut) return;
-    try {
-      const u = JSON.parse(brut);
-      this.userName = this.capitalizeName(String(u?.name || ''));
-      this.userId = typeof u?.id !== 'undefined' ? Number(u.id) : null;
-    } catch {
-      /* ignore parse error */
-    }
+    this.auth.logout().subscribe({
+      next: () => {
+        this.userName = '';
+        this.userId = null;
+        this.estAdmin = false;
+        this.router.navigate(['/']);
+      },
+      error: () => {
+        this.userName = '';
+        this.userId = null;
+        this.estAdmin = false;
+        this.router.navigate(['/']);
+      },
+    });
   }
 
   /**
    * Capitalise "prenom nom" -> "Prenom Nom"
-   * @name nom brut
    */
   private capitalizeName(name: string): string {
     return name
       .split(' ')
       .filter(Boolean)
-      .map((morceau) => morceau.charAt(0).toUpperCase() + morceau.slice(1))
+      .map((m) => m.charAt(0).toUpperCase() + m.slice(1))
       .join(' ');
+  }
+
+  get estConnecte(): boolean {
+    return this.userId !== null;
   }
 }
 
@@ -2246,10 +2158,12 @@ export class PlantsListComponent implements OnInit {
   private api = inject(ApiService);
   private auth = inject(AuthService);
   private cartService = inject(CartService);
+
   protected plantes: Plante[] = [];
+  isAdmin = false; // <- propriété utilisée dans le template
 
   /**
-   * Charge la liste des plantes (publique), filtre et trie
+   * Charge la liste des plantes et récupère le rôle admin
    */
   ngOnInit(): void {
     this.api.listerPlantes().subscribe((donnees) => {
@@ -2257,20 +2171,19 @@ export class PlantsListComponent implements OnInit {
         .filter((plante) => plante.stock > 0)
         .sort((a, b) => a.name.localeCompare(b.name));
     });
+
+    // Vérifie si l'utilisateur courant est admin
+    this.auth.getCurrentUser().subscribe((user) => {
+      this.isAdmin = !!user && user.admin === true;
+    });
   }
 
   /**
-   * Ajouter au panier sans dépendance externe
+   * Ajouter au panier
    * @plante élément sélectionné
    */
   addToCart(plante: Plante): void {
     this.cartService.add(plante.id, plante.name, plante.price, plante.stock);
-  }
-
-  get estAdmin(): boolean {
-    const isAdminRes = this.auth.isAdmin();
-    // console.log('[estAdmin] : ' + isAdminRes);
-    return isAdminRes;
   }
 }
 
@@ -2460,7 +2373,8 @@ export class UserProfileEditComponent {
 
 ## apps/plant-shop-angular-universal/src/app/users/user-profile/user-profile.component.ts
 
-import { Component, inject } from '@angular/core';
+// # Importations
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ApiService, Utilisateur } from '../../services/api.service';
 import { AuthService } from '../../auth/auth.service';
@@ -2473,19 +2387,28 @@ import { RouterModule } from '@angular/router';
   templateUrl: './user-profile.component.html',
   styleUrls: ['./user-profile.component.css'],
 })
-export class UserProfileComponent {
+export class UserProfileComponent implements OnInit {
   private api = inject(ApiService);
   private auth = inject(AuthService);
 
   protected user: Utilisateur | null = null;
 
-  ngOnInit() {
-    const currentUser = this.auth.getUser();
-    if (!currentUser) return;
+  ngOnInit(): void {
+    this.auth.getCurrentUser().subscribe({
+      next: (currentUser) => {
+        if (!currentUser) {
+          this.user = null;
+          return;
+        }
 
-    this.api
-      .unUtilisateur(currentUser.id)
-      .subscribe((data) => (this.user = data));
+        this.api.unUtilisateur(currentUser.id).subscribe((data) => {
+          this.user = data;
+        });
+      },
+      error: () => {
+        this.user = null;
+      },
+    });
   }
 }
 
@@ -3776,31 +3699,52 @@ export class PrismaService extends PrismaClient implements OnModuleInit {
 
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
-
 import { AppModule } from './app/app.module';
+import * as express from 'express';
+import { join } from 'path';
+import * as cookieParser from 'cookie-parser';
+
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+	app.use(cookieParser());
+  const server: express.Express = app.getHttpAdapter().getInstance();
 
+  // Log pour le débogage (vous pouvez le retirer en production finale)
   app.use((req, res, next) => {
-    console.log('[Nest DEBUG main.ts] incoming →', req.method, req.url);
     next();
   });
 
-  // Préfixe strictement limité à /api/*
+  // Étape A : Définir le préfixe de l'API
+  // Toutes les routes de vos contrôleurs Nest commenceront par /api.
   app.setGlobalPrefix('api');
 
-  // En mode SSR, servir les assets Angular
+  // Étape B : Configuration du SSR (uniquement si la variable d'environnement est activée)
   if (process.env.SERVE_SSR === 'true') {
-    const express = require('express');
-    const { join } = require('path');
     const browserDist = join(
       process.cwd(),
       'dist/apps/plant-shop-angular-universal/browser'
     );
-    app.use(express.static(browserDist));
+    const indexHtml = join(browserDist, 'index.html');
+
+    // 2a. Servir les fichiers statiques d'Angular (JS, CSS, images...).
+    // Ce middleware est prioritaire et répondra avant le fallback.
+    server.use(express.static(browserDist, { maxAge: '1y', index: false }));
+
+    // 2b. Le fallback SSR pour les routes du frontend Angular.
+    // ====================== MODIFICATION IMPORTANTE ICI ======================
+    // On remplace '*' par une expression régulière qui intercepte tout SAUF /api.
+    // C'est la correction pour l'erreur "PathError: Missing parameter name".
+    server.get(
+      /^(?!\/api).*/,
+      (req: express.Request, res: express.Response) => {
+         res.sendFile(indexHtml);
+      }
+    );
+    // =========================================================================
   }
 
+  // Configuration globale des pipes et de CORS
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -3809,46 +3753,21 @@ async function bootstrap() {
     })
   );
 
-  // Configurez CORS pour le développement
   app.enableCors({
     origin: [
-      'http://localhost:8300',
+      'http://localhost:8300', // Port dev Angular
       'http://localhost:3000',
-      'http://localhost:4150',
+      'http://localhost:4150', // Port prod SSR
     ],
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     credentials: true,
   });
 
+  // Étape C : Démarrage du serveur
   const port = process.env.PORT || 3000;
   await app.listen(port);
 
-  Logger.log(`🚀 Application is running on: http://localhost:${port}/`);
-
-  // Fallback SSR
-  if (process.env.SERVE_SSR === 'true') {
-    const { join } = require('path');
-    const server: import('express').Express = app
-      .getHttpAdapter()
-      .getInstance();
-    const distFolder = join(
-      process.cwd(),
-      'dist/apps/plant-shop-angular-universal/browser'
-    );
-    const indexHtml = join(distFolder, 'index.html');
-
-    // N’intercepter que les GET non-API et non-fichiers statiques
-    server.use((req, res, next) => {
-      console.log('[SSR Middleware] incoming →', req.method, req.url);
-      if (req.method !== 'GET') return next();
-      if (req.url.startsWith('/api/')) return next();
-      if (req.url.match(/\.(js|css|ico|png|jpg|jpeg|gif|svg|webp|woff2?|ttf)$/))
-        return next();
-
-      console.log('[SSR Middleware] serve index.html for', req.url);
-      res.sendFile(indexHtml);
-    });
-  }
+  Logger.log(`🚀 Application démarrée sur: http://localhost:${port}`);
 }
 
 bootstrap();
@@ -3905,13 +3824,13 @@ export class AppController {
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { AngularModule } from './angular/angular.module';
 import { PrismaModule } from '../prisma/prisma.module';
 import { UsersModule } from './users/users.module';
 import { PlantsModule } from './plants/plants.module';
 import { OrdersModule } from './orders/orders.module';
 import { OrderItemsModule } from './order-items/order-items.module';
 import { AuthModule } from './auth/auth.module';
+// import { AngularModule } from './angular/angular.module';
 
 // # Module principal
 @Module({
@@ -3922,7 +3841,7 @@ import { AuthModule } from './auth/auth.module';
     OrdersModule,
     OrderItemsModule,
     AuthModule,
-    ...(process.env.SERVE_SSR === 'true' ? [AngularModule] : []),
+    // ...(process.env.SERVE_SSR === 'true' ? [AngularModule] : []),
   ],
   controllers: [AppController],
   providers: [AppService],
@@ -4084,84 +4003,84 @@ export class UpdateUserDto {
 
 # CONTROLLERS
 #
-## apps/plant_shop_nest/src/app/angular/angular.controller.ts
-
-import { Controller, Get, Req, Res, All, Next } from '@nestjs/common';
-import { Request, Response } from 'express';
-import { join } from 'path';
-import * as express from 'express';
-
-const isSSR = process.env.SERVE_SSR === 'true';
-
-@Controller('')
-export class AngularController {
-  // private distFolder = join(
-  //   process.cwd(),
-  //   'dist/apps/plant-shop-angular-universal/browser'
-  // );
-
-  // constructor() {}
-
-  // @Get()
-  // serveRoot(@Res() res: Response) {
-  //   if (!isSSR) return res.status(404).send('Not Found');
-  //   res.sendFile(join(this.distFolder, 'index.html'));
-  // }
-
-  // @All('*')
-  // serveAngular(
-  //   @Req() req: Request,
-  //   @Res() res: Response,
-  //   @Next() next: () => void
-  // ) {
-  //   if (!isSSR) return next(); // dev → on laisse passer
-
-  //   const url = req.url;
-
-  //   // Laisser passer API
-  //   if (url.startsWith('/api')) {
-  //     console.log('[AngularController] laisse passer API', url);
-  //     return next();
-  //   }
-  //   // Laisser passer les assets statiques
-  //   if (url.match(/\.(?:js|css|ico|png|jpg|jpeg|gif|svg|webp|woff2?|ttf)$/)) {
-  //     console.log('[AngularController] laisse passer asset', url);
-  //     return next();
-  //   }
-
-  //   // Sinon, SSR
-  //   console.log('[AngularController] SSR Angular index.html pour', url);
-  //   return res.sendFile(join(this.distFolder, 'index.html'));
-  // }
-}
-
-
 ## apps/plant_shop_nest/src/app/auth/auth.controller.ts
 
 // # Importations
-import { Controller, Post, Body } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Res,
+  Get,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
+import { Response, Request } from 'express';
 import { AuthService } from './auth.service';
-import { UsersService } from '../users/users.service';
+import { JwtAuthGuard } from './jwt-auth.guard';
 
-// # Contrôleur d'authentification
 @Controller('auth')
 export class AuthController {
-  constructor(
-    private readonly authService: AuthService,
-    private readonly usersService: UsersService
-  ) {}
+  constructor(private readonly authService: AuthService) {}
 
-  @Post('login')
-  async login(@Body() body: { email: string; password: string }) {
-    const user = await this.authService.validateUser(body.email, body.password);
-    return this.authService.login(user);
-  }
-
+  /** Inscription */
   @Post('register')
   async register(
-    @Body() body: { email: string; name?: string; password: string }
+    @Body('email') email: string,
+    @Body('password') password: string,
+    @Body('name') name: string,
+    @Res({ passthrough: true }) res: Response
   ) {
-    return this.usersService.create(body);
+    const { access_token, user } = await this.authService.register(
+      email,
+      password,
+      name
+    );
+
+    // Dépose le cookie httpOnly
+    res.cookie('jwt', access_token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 1000 * 60 * 60 * 24, // 1 jour
+    });
+
+    return { user };
+  }
+
+  /** Connexion */
+  @Post('login')
+  async login(
+    @Body('email') email: string,
+    @Body('password') password: string,
+    @Res({ passthrough: true }) res: Response
+  ) {
+    const utilisateur = await this.authService.validateUser(email, password);
+    const { access_token, user } = await this.authService.login(utilisateur);
+
+    res.cookie('jwt', access_token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 1000 * 60 * 60 * 24,
+    });
+
+    return (req as any).user;
+  }
+
+  /** Déconnexion */
+  @Post('logout')
+  async logout(@Res({ passthrough: true }) res: Response) {
+    // Efface le cookie
+    res.clearCookie('jwt');
+    return { message: 'Déconnecté' };
+  }
+
+  /** Récupérer l’utilisateur courant */
+  @UseGuards(JwtAuthGuard)
+  @Get('me')
+  async me(@Req() req: Request) {
+    return (req as any).user;
   }
 }
 
@@ -4544,15 +4463,15 @@ export class AuthService {
   /**
    * Valider un utilisateur via email/mot de passe
    */
-  async validateUser(email: string, mot_de_passe: string) {
+  async validateUser(email: string, password: string) {
     const utilisateur = await this.usersService.findByEmail(email);
     if (!utilisateur)
       throw new UnauthorizedException('Utilisateur introuvable');
 
-    const valide = await bcrypt.compare(mot_de_passe, utilisateur.password);
+    const valide = await bcrypt.compare(password, utilisateur.password);
     if (!valide) throw new UnauthorizedException('Mot de passe invalide');
 
-    const { password, ...resultat } = utilisateur;
+    const { password: _, ...resultat } = utilisateur;
     return resultat;
   }
 
@@ -4560,6 +4479,24 @@ export class AuthService {
    * Générer un JWT pour un utilisateur
    */
   async login(utilisateur: any) {
+    const payload = {
+      sub: utilisateur.id,
+      email: utilisateur.email,
+      admin: utilisateur.admin,
+    };
+    return {
+      access_token: this.jwtService.sign(payload),
+      user: utilisateur,
+    };
+  }
+
+  async register(email: string, password: string, name: string) {
+    const hashed = await bcrypt.hash(password, 10);
+    const utilisateur = await this.usersService.create({
+      email,
+      password: hashed,
+      name,
+    });
     const payload = {
       sub: utilisateur.id,
       email: utilisateur.email,
@@ -4968,30 +4905,6 @@ export class UsersService {
 
 # MODULES
 #
-## apps/plant_shop_nest/src/app/angular/angular.module.ts
-
-import { Module, MiddlewareConsumer, NestModule } from '@nestjs/common';
-import { AngularController } from './angular.controller';
-import { join } from 'path';
-import * as express from 'express';
-
-@Module({
-  controllers: [AngularController],
-})
-export class AngularModule implements NestModule {
-  configure(consumer: MiddlewareConsumer) {
-    // Servir les fichiers statiques
-    consumer
-      .apply(
-        express.static(
-          join(process.cwd(), 'dist/apps/plant-shop-angular-universal/browser')
-        )
-      )
-      .forRoutes('*');
-  }
-}
-
-
 ## apps/plant_shop_nest/src/app/auth/auth.module.ts
 
 import { Module } from '@nestjs/common';
@@ -5300,101 +5213,46 @@ export class App {}
 // # Importations
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, tap, BehaviorSubject } from 'rxjs';
-
-export type AuthResponse = {
-  access_token: string;
-  user: { id: number; email: string; admin?: boolean };
-};
+import { Observable, BehaviorSubject } from 'rxjs';
 
 // # Service d'authentification
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private apiUrl = '/api/auth'; // proxy -> backend Nest
-  private tokenKey = 'jwt_token';
-  private userKey = 'current_user';
   user$ = new BehaviorSubject<any | null>(null);
 
   constructor(private http: HttpClient) {}
 
-  private storeUser(user: any) {
-    localStorage.setItem(this.userKey, JSON.stringify(user));
-  }
-
   /** Enregistrer un utilisateur */
-  register(
-    email: string,
-    password: string,
-    name?: string
-  ): Observable<AuthResponse> {
-    return this.http
-      .post<AuthResponse>(`${this.apiUrl}/register`, { email, password, name })
-      .pipe(
-        tap((res) => {
-          this.storeToken(res.access_token);
-          this.storeUser(res.user);
-        })
-      );
+  register(email: string, password: string, name?: string): Observable<any> {
+    return this.http.post<any>(
+      `${this.apiUrl}/register`,
+      { email, password, name },
+      { withCredentials: true }
+    );
   }
 
   /** Login utilisateur */
-  login(email: string, password: string): Observable<AuthResponse> {
-    return this.http
-      .post<AuthResponse>(`${this.apiUrl}/login`, { email, password })
-      .pipe(
-        tap((res) => {
-          this.storeToken(res.access_token);
-          localStorage.setItem('current_user', JSON.stringify(res.user));
-          this.user$.next(res.user); // <-- NOTIFIER LA NAVBAR
-        })
-      );
+  login(email: string, password: string): Observable<any> {
+    return this.http.post<any>(
+      `${this.apiUrl}/login`,
+      { email, password },
+      { withCredentials: true }
+    );
   }
 
   /** Logout */
-  logout() {
-    localStorage.removeItem(this.tokenKey);
-    localStorage.removeItem('current_user');
-    this.user$.next(null);
+  logout(): Observable<any> {
+    return this.http.post(
+      `${this.apiUrl}/logout`,
+      {},
+      { withCredentials: true }
+    );
   }
 
-  /** Vérifier si connecté */
-  isAuthenticated(): boolean {
-    const token = localStorage.getItem(this.tokenKey);
-    const user = this.getUser();
-    const res = !!token && !!user;
-    // console.log('[AuthService FRONT] isAuthenticated →', res, { token, user });
-    return res;
-  }
-
-  /** Récupérer le token */
-  getToken(): string | null {
-    return localStorage.getItem(this.tokenKey);
-  }
-
-  getUser(): any | null {
-    const data = localStorage.getItem(this.userKey);
-    return data ? JSON.parse(data) : null;
-  }
-
-  isAdmin(): boolean {
-    // console.log('[AuthService FRONT] Vérification isAdmin()');
-
-    const user = this.getUser();
-    // console.log('[AuthService FRONT] état interne user =', user);
-
-    if (!user) {
-      // console.log('[AuthService FRONT] Pas connecté → isAdmin=false');
-      return false;
-    }
-
-    const resultat = user.admin === true;
-    // console.log(`[AuthService FRONT] email=${user.email}, admin=${user.admin} → isAdmin=${resultat}`);
-    return resultat;
-  }
-
-  /** Stocker le token */
-  private storeToken(token: string) {
-    localStorage.setItem(this.tokenKey, token);
+  /** Récupérer l’utilisateur courant (via cookie httpOnly) */
+  getCurrentUser(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/me`, { withCredentials: true });
   }
 }
 

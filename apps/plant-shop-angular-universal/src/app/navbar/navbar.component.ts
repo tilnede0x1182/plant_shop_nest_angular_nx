@@ -24,81 +24,64 @@ export class NavbarComponent implements OnInit {
   nombreArticles = 0;
   userName = '';
   userId: number | null = null;
+  estAdmin = false;
 
   /**
-   * Init : abonne le compteur et lit l'utilisateur depuis storage (si dispo)
+   * Init : abonne le compteur et lit l'utilisateur depuis l'API sécurisée
    */
   ngOnInit(): void {
+    // compteur panier (inchangé)
     this.cartService.cartCount$.subscribe(
       (count) => (this.nombreArticles = count)
     );
 
-    // abonnement direct à l'état utilisateur
-    this.auth.user$.subscribe((u) => {
-      this.userName = this.capitalizeName(String(u?.name || ''));
-      this.userId = u?.id ?? null;
+    // récupération utilisateur courant depuis le backend
+    this.auth.getCurrentUser().subscribe({
+      next: (u) => {
+        this.userName = this.capitalizeName(String(u?.name || ''));
+        this.userId = u?.id ?? null;
+        this.estAdmin = u?.admin === true;
+      },
+      error: () => {
+        this.userName = '';
+        this.userId = null;
+        this.estAdmin = false;
+      },
     });
-
-    // garder pour hydrater si refresh navigateur
-    this.hydraterUtilisateurDepuisStorage();
-  }
-
-  /**
-   * Renvoie l'état d'auth tel que fourni par AuthService
-   */
-  get estConnecte(): boolean {
-    return this.auth.isAuthenticated();
-  }
-
-  /**
-   * Getteur de isAdmin
-   */
-  get estAdmin(): boolean {
-    return this.auth.isAdmin();
   }
 
   /**
    * Déconnexion standard
-   * - supprime token + utilisateur côté AuthService (déjà)
-   * - vide l'état local immédiatement pour mise à jour UI instantanée
    */
   logout(): void {
-    this.auth.logout();
-    // vider l'état local pour ne plus afficher le nom après logout
-    this.userName = '';
-    this.userId = null;
-    this.router.navigate(['/']);
-  }
-
-  /**
-   * Lecture user locale (sans toucher au backend)
-   * Tente 'user' puis 'currentUser' en local/sessionStorage
-   */
-  private hydraterUtilisateurDepuisStorage(): void {
-    if (typeof window === 'undefined') return;
-    // clé canonicalisée utilisée par AuthService
-    const brut =
-      localStorage.getItem('current_user') ||
-      sessionStorage.getItem('current_user');
-    if (!brut) return;
-    try {
-      const u = JSON.parse(brut);
-      this.userName = this.capitalizeName(String(u?.name || ''));
-      this.userId = typeof u?.id !== 'undefined' ? Number(u.id) : null;
-    } catch {
-      /* ignore parse error */
-    }
+    this.auth.logout().subscribe({
+      next: () => {
+        this.userName = '';
+        this.userId = null;
+        this.estAdmin = false;
+        this.router.navigate(['/']);
+      },
+      error: () => {
+        this.userName = '';
+        this.userId = null;
+        this.estAdmin = false;
+        this.router.navigate(['/']);
+      },
+    });
   }
 
   /**
    * Capitalise "prenom nom" -> "Prenom Nom"
-   * @name nom brut
    */
   private capitalizeName(name: string): string {
     return name
       .split(' ')
       .filter(Boolean)
-      .map((morceau) => morceau.charAt(0).toUpperCase() + morceau.slice(1))
+      .map((m) => m.charAt(0).toUpperCase() + m.slice(1))
       .join(' ');
+  }
+
+  get estConnecte(): boolean {
+    return this.userId !== null;
   }
 }

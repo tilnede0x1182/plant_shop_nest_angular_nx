@@ -3,9 +3,12 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app/app.module';
 import * as express from 'express';
 import { join } from 'path';
+import * as cookieParser from 'cookie-parser';
+
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+	app.use(cookieParser());
   const server: express.Express = app.getHttpAdapter().getInstance();
 
   // Log pour le débogage (vous pouvez le retirer en production finale)
@@ -36,7 +39,7 @@ async function bootstrap() {
     server.get(
       /^(?!\/api).*/,
       (req: express.Request, res: express.Response) => {
-        res.sendFile(indexHtml);
+         res.sendFile(indexHtml);
       }
     );
     // =========================================================================

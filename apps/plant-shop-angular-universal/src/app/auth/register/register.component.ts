@@ -48,7 +48,7 @@ export class RegisterComponent {
           name: this.name,
           email: this.email,
         });
-        this.router.navigate(['/login']);
+        this.router.navigate(['/plants']);
       },
       error: (err) => {
         this.message = '❌ Erreur lors de la création du compte';

@@ -17,10 +17,12 @@ export class PlantsListComponent implements OnInit {
   private api = inject(ApiService);
   private auth = inject(AuthService);
   private cartService = inject(CartService);
+
   protected plantes: Plante[] = [];
+  estAdmin = false;
 
   /**
-   * Charge la liste des plantes (publique), filtre et trie
+   * Charge la liste des plantes et récupère le rôle admin
    */
   ngOnInit(): void {
     this.api.listerPlantes().subscribe((donnees) => {
@@ -28,19 +30,18 @@ export class PlantsListComponent implements OnInit {
         .filter((plante) => plante.stock > 0)
         .sort((a, b) => a.name.localeCompare(b.name));
     });
+
+    // Vérifie si l'utilisateur courant est admin
+    this.auth.getCurrentUser().subscribe((user) => {
+      this.estAdmin = !!user && user.admin === true;
+    });
   }
 
   /**
-   * Ajouter au panier sans dépendance externe
+   * Ajouter au panier
    * @plante élément sélectionné
    */
   addToCart(plante: Plante): void {
     this.cartService.add(plante.id, plante.name, plante.price, plante.stock);
-  }
-
-  get estAdmin(): boolean {
-    const isAdminRes = this.auth.isAdmin();
-    // console.log('[estAdmin] : ' + isAdminRes);
-    return isAdminRes;
   }
 }
