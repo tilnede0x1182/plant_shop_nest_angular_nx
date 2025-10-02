@@ -121,5 +121,5 @@ apps/
  └─ plant_shop_nest                → Backend NestJS
 
 prisma/    → Modèles + seed
-tests/     → Scénarios de test complet
+tests/     → Test des routes backend
 ```

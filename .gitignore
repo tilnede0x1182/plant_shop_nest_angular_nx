@@ -54,3 +54,6 @@ vitest.config.*.timestamp*
 # Prisma
 prisma/*.tsbuildinfo
 users.txt
+
+# Autres fichiers
+projet.txt
