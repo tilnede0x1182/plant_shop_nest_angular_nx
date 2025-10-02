@@ -28,15 +28,17 @@ export class AngularController {
 
     const url = req.url;
 
-    // Laisser passer API et assets statiques (js, css, images, icônes)
-    if (
-      url.startsWith('/api') ||
-      url.match(/\.(?:js|css|ico|png|jpg|jpeg|gif|svg|webp|woff2?|ttf)$/)
-    ) {
+    // Si c’est une route API → NE RIEN FAIRE (laisser Nest router)
+    if (url.startsWith('/api')) {
       return;
     }
 
-    // Tout le reste → SSR Angular
+    // Si c’est un asset statique → NE RIEN FAIRE (express.static le gère)
+    if (url.match(/\.(?:js|css|ico|png|jpg|jpeg|gif|svg|webp|woff2?|ttf)$/)) {
+      return;
+    }
+
+    // Tout le reste → Angular SSR
     return res.sendFile(join(this.distFolder, 'index.html'));
   }
 }
