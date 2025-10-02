@@ -1,96 +1,111 @@
-# Plant Shop – Angular + NestJS (Nx)
+# 🌿 PlantShop - E-commerce Botanique (Angular / NestJS / Prisma / Nx)
 
-Magasin de plantes complet avec frontend Angular (SSR via Angular Universal) et backend NestJS, orchestrés avec Nx.
-Inspiré du projet Rails et de la version Next.js, ce monorepo fournit une architecture modulaire, maintenable et prête pour la production.
-
----
-
-## 📖 Introduction
-
-Note sur Nx :
-J'ai utilisé Nx pour essayer de simplifier le SSR, mais je ne suis pas sûr que c'était indispensable.
+Application complète de vente de plantes construite avec **Angular** (frontend) et **NestJS** (backend), orchestrée par **Nx** pour la gestion monorepo.
+Elle offre une interface utilisateur moderne côté client 🌱 et un espace d’administration sécurisé 🔐 pour la gestion des plantes, des commandes et des utilisateurs.
+Un script de seed réaliste alimente automatiquement la base PostgreSQL avec des plantes 🪴, des comptes 👤 et des commandes 📦.
 
 ---
 
-## 🚀 Lancer le projet
+## 🛠 Stack Technique
 
-### Développement
-- Frontend (Angular Universal SSR) :
-  pnpm dev
-- Backend (NestJS seul, sans SSR) :
-  pnpm dev-back
-- Frontend seul (Angular SPA avec proxy vers backend) :
-  pnpm dev-front
+### 🧩 Backend
 
-Accès :
-- Frontend SSR : http://localhost:4200
-- Frontend SPA : http://localhost:8300
-- Backend API Nest : http://localhost:4100/api
+- **Langage & Framework**
+  - TypeScript
+  - NestJS (API REST)
+- **Base de données & ORM**
+  - PostgreSQL
+  - Prisma (migrations, modèles, seed via `prisma/seed.ts`)
+  - FakerJS + BcryptJS pour les données factices
+- **Authentification**
+  - JWT (avec `passport-local` et `passport-jwt`)
+  - Cookies httpOnly
+  - Guards NestJS (`AuthGuard`, `RolesGuard`)
+  - Middleware pour protéger `/admin`
 
-### Production
-- Build complet (front + back) :
-  pnpm build
-- Lancer serveur SSR (Angular + Nest) :
-  pnpm start
+### 🎨 Frontend
 
----
-
-## 🧪 Tests End-to-End
-
-Pour effectuer le test End-to-End des routes du backend Nest :
-1. Lancer le serveur Nest en mode test :
-   make test-e2e
-2. Dans un second terminal, lancer le test des routes :
-   make test-routes
-
----
-
-## 📦 Structure principale
-
-apps/
-- plant-shop-angular-universal → Frontend Angular Universal
-- plant_shop_nest → Backend NestJS
-
-prisma/ → Modèle de données et seed
-tests/ → Scénarios de test complet
+- **Framework & Rendu**
+  - Angular 20
+  - Angular Universal (SSR)
+  - Nx (gestion monorepo, builds et tests)
+- **UI/UX**
+  - Bootstrap 5.3.8
+  - Styles custom (`src/styles.css`)
+- **Panier**
+  - Stockage via `localStorage`
+  - Mise à jour dynamique (quantité, total, suppression)
+  - Synchronisation avec le backend lors des commandes
 
 ---
 
-## 🛠️ Technologies
+## ✨ Fonctionnalités
 
-- **Frontend** : Angular 20, Angular Universal, Bootstrap 5
-- **Backend** : NestJS 11, Prisma, JWT Auth
-- **Monorepo** : Nx 21
-- **BDD** : PostgreSQL via Prisma Client
+### 👥 Côté client
+
+- **🛍 Catalogue**
+  - Liste des plantes filtrée par stock
+  - Tri alphabétique
+- **📄 Détail produit**
+  - Nom, description, prix, stock
+  - Ajout direct au panier
+- **🛒 Panier**
+  - Quantités ajustables
+  - Totaux dynamiques
+  - Persistance locale
+- **✅ Commandes**
+  - Création de commande depuis le panier
+  - Historique utilisateur
+- **👤 Compte utilisateur**
+  - Inscription / connexion
+  - Profil modifiable
+
+### 🔧 Administration
+
+- **🌱 Plantes**
+  - CRUD complet (ajout, édition, suppression)
+- **👥 Utilisateurs**
+  - Gestion avec rôles (`USER`, `ADMIN`)
+- **📦 Commandes**
+  - Consultation des commandes
+- **🔐 Sécurité**
+  - Guards et rôles appliqués côté client & serveur
+
+### 🛡 Sécurité
+
+- JWT stocké côté serveur (cookie httpOnly)
+- Bcrypt pour le hachage des mots de passe
+- Guards NestJS (`AuthGuard`, `AdminGuard`)
+- Middleware Angular/Nest pour restreindre l’accès
 
 ---
 
-## 🔐 Authentification
+## 🚀 Installation et lancement
 
-- JWT géré côté backend (NestJS) et stocké en cookie httpOnly sécurisé
-- Intercepteur Angular qui force `withCredentials` pour inclure automatiquement le cookie dans toutes les requêtes HTTP
-- Guards pour protéger les routes : `AuthGuard`, `AdminGuard`
+### 🔧 Prérequis
 
----
+- Node.js ≥ 18
+- PostgreSQL ≥ 13
+- pnpm (gestionnaire recommandé avec Nx)
 
-## 🛒 Fonctionnalités principales
+### ⚙️ Étapes
 
-- Parcourir les plantes disponibles (filtrées par stock > 0)
-- Ajouter au panier (persistance locale, compteur dynamique en navbar)
-- Passer commande avec calcul automatique du total
-- Authentification utilisateurs + rôles (admin / non-admin)
-- Espace admin pour gestion CRUD des plantes et des utilisateurs
+```bash
+# 1) Installer les dépendances
+pnpm install
 
----
+# 2) Créer la base de données et exécuter les migrations Prisma
+pnpm prisma migrate dev
 
-## 📂 Scripts utiles
+# 3) Remplir la base avec des données factices
+pnpm prisma db seed
 
-- pnpm test-routes → test de toutes les routes avec un script Node
-- pnpm seed → initialise la base avec données fictives via Prisma
+# 4) Lancer le backend NestJS (http://localhost:4100)
+pnpm dev-back
 
----
+# 5) Lancer le frontend Angular (http://localhost:8300)
+pnpm dev-front
 
-## ⚙️ Configuration
-
-Proxy configuré pour router le frontend vers le backend Nest sur /api :
-proxy.conf.json
+# 6) Lancer en mode SSR (http://localhost:4150)
+pnpm start
+```
