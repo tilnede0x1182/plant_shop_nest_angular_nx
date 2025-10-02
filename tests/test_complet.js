@@ -3,6 +3,10 @@ const cookieJars = {
   admin: '',
   user: '',
 };
+const maintenant = new Date()
+  .toISOString()
+  .replace(/[^0-9]/g, '')
+  .slice(0, 14);
 
 /* ---------- configuration ---------- */
 const config = {
@@ -123,8 +127,8 @@ async function testPlants(who = 'admin') {
 async function testUsers(who = 'admin') {
   console.log('\n📌 TEST MODULE: USERS (admin)');
   const userData = {
-    email: `testcrud-${Date.now()}@example.com`,
-    name: 'Tester',
+    email: `utilisateur_test_${maintenant}@example.com`,
+    name: `Utilisateur de test ${maintenant}`,
     password: 'pass123',
   };
   const { id: userId } = await hit('POST', '/users', 201, userData, who);
@@ -144,7 +148,7 @@ async function testOrders(adminWho = 'admin', userWho = 'user') {
   console.log('\n📌 TEST MODULE: ORDERS & ORDER ITEMS');
 
   /* --- Création plante --- */
-  const plantData = { name: `Test Plant ${Date.now()}`, price: 10, stock: 5 };
+  const plantData = { name: `Plante_de_test_${maintenant}`, price: 10, stock: 5 };
   const { id: plantId } = await hit(
     'POST',
     '/admin/plants',
@@ -201,7 +205,7 @@ async function testUserProfile(
   );
 
   /* --- MAJ nom --- */
-  const nouveauNom = `UserModif-${Date.now()}`;
+  const nouveauNom = `Utilisateur_de_test_${maintenant}`;
   await hit('PATCH', `/users/${userId}`, 200, { name: nouveauNom }, userWho);
   assertEq(
     await hit('GET', `/users/${userId}`, 200, null, userWho),
@@ -249,7 +253,11 @@ async function testAdminPlants(who = 'admin') {
   console.log(`   ↳ ${plantes.length} plantes récupérées`);
 
   /* --- CRUD rapide --- */
-  const d = { name: `AdminTestPlant-${Date.now()}`, price: 99, stock: 12 };
+  const d = {
+    name: `Plante_admin_de_test_${maintenant}`,
+    price: 99,
+    stock: 12,
+  };
   const { id } = await hit('POST', '/admin/plants', 201, d, who);
   await hit('PATCH', `/admin/plants/${id}`, 200, { price: 123 }, who);
   await hit('DELETE', `/admin/plants/${id}`, 200, null, who);
@@ -264,7 +272,7 @@ async function testAdminUsers(who = 'admin') {
 
   /* --- MAJ rapide du premier --- */
   const u = utilisateurs[0];
-  const nomModifie = `AdminModif-${Date.now()}`;
+  const nomModifie = `Admin_de_test_modifie_${maintenant}`;
   await hit('PATCH', `/admin/users/${u.id}`, 200, { name: nomModifie }, who);
   assertEq(
     await hit('GET', `/users/${u.id}`, 200, null, who),
@@ -289,7 +297,7 @@ async function main() {
   try {
     /* --- Auth --- */
     await login(config.adminEmail, config.adminPassword, 'admin');
-    const userEmail = `user-${Date.now()}@example.com`;
+    const userEmail = `utilisateur_de_test_${maintenant}@example.com`;
     await registerUser('User', userEmail, 'pass123', 'user');
 
     /* --- Modules --- */
