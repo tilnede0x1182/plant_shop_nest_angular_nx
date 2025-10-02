@@ -31,8 +31,8 @@ export class PlantsListComponent implements OnInit {
         .sort((a, b) => a.name.localeCompare(b.name));
     });
 
-    // Vérifie si l'utilisateur courant est admin
-    this.auth.getCurrentUser().subscribe((user) => {
+    // Suit en continu l'état de l'utilisateur
+    this.auth.user$.subscribe((user) => {
       this.estAdmin = !!user && user.admin === true;
     });
   }
