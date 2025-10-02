@@ -25,8 +25,8 @@
 						</a>
 					</td>
 					<td style="width:120px;">
-						<input type="number" class="form-control form-control-sm" [value]="item.quantity" [min]="1"
-							[max]="item.stock" (input)="onInput(item, $event)">
+						<input type="number" class="form-control form-control-sm" [(ngModel)]="item.quantity" [min]="1"
+							[max]="item.stock" (ngModelChange)="delayedUpdate(item.id, $event)">
 					</td>
 					<td>{{ item.price * item.quantity }} €</td>
 					<td>

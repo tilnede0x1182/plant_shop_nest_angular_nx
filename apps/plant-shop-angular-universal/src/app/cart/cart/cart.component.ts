@@ -3,16 +3,18 @@ import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { CartService, CartItem } from '../cart.service';
+import { FormsModule } from '@angular/forms';
 
 // # Composant Cart
 @Component({
   selector: 'app-cart',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, FormsModule],
   templateUrl: './cart.component.html',
   styleUrls: ['./cart.component.css'],
 })
 export class CartComponent {
+  private timers: Record<number, any> = {};
   private cart = inject(CartService);
   protected items: CartItem[] = [];
 
@@ -36,12 +38,18 @@ export class CartComponent {
     }
   }
 
-  onInput(item: CartItem, event: any) {
-    const val = Number(event.target.value);
-    if (!isNaN(val) && val > 0 && val <= item.stock) {
-      this.cart.update(item.id, val);
+  delayedUpdate(id: number, value: any) {
+    clearTimeout(this.timers[id]);
+    const num = Number(value);
+    this.timers[id] = setTimeout(() => {
+      // correction et application retardées
+      const corrected = this.cart.update(id, num);
+      const item = this.items.find((i) => i.id === id);
+      if (item) {
+        item.quantity = corrected;
+      }
       this.refresh();
-    }
+    }, 300);
   }
 
   remove(id: number) {
