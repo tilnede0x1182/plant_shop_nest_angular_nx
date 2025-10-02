@@ -67,9 +67,9 @@ tests/ → Scénarios de test complet
 
 ## 🔐 Authentification
 
-- JWT côté backend (NestJS)
-- Intercepteur Angular qui ajoute automatiquement le token aux requêtes HTTP
-- Guards pour protéger routes : `AuthGuard`, `AdminGuard`
+- JWT géré côté backend (NestJS) et stocké en cookie httpOnly sécurisé
+- Intercepteur Angular qui force `withCredentials` pour inclure automatiquement le cookie dans toutes les requêtes HTTP
+- Guards pour protéger les routes : `AuthGuard`, `AdminGuard`
 
 ---
 
