@@ -1,6 +1,5 @@
 # Run Dev SSR
-run:
-	npm run dev
+run: prod
 
 # Run non-SSR
 run-dev-back:
