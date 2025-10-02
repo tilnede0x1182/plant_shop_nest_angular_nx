@@ -1,26 +1,77 @@
 // # Importations
-import { Controller, Post, Body } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Res,
+  Get,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
+import { Response, Request } from 'express';
 import { AuthService } from './auth.service';
-import { UsersService } from '../users/users.service';
+import { JwtAuthGuard } from './jwt-auth.guard';
 
-// # Contrôleur d'authentification
 @Controller('auth')
 export class AuthController {
-  constructor(
-    private readonly authService: AuthService,
-    private readonly usersService: UsersService
-  ) {}
+  constructor(private readonly authService: AuthService) {}
 
-  @Post('login')
-  async login(@Body() body: { email: string; password: string }) {
-    const user = await this.authService.validateUser(body.email, body.password);
-    return this.authService.login(user);
-  }
-
+  /** Inscription */
   @Post('register')
   async register(
-    @Body() body: { email: string; name?: string; password: string }
+    @Body('email') email: string,
+    @Body('password') password: string,
+    @Body('name') name: string,
+    @Res({ passthrough: true }) res: Response
   ) {
-    return this.usersService.create(body);
+    const { access_token, user } = await this.authService.register(
+      email,
+      password,
+      name
+    );
+
+    // Dépose le cookie httpOnly
+    res.cookie('jwt', access_token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 1000 * 60 * 60 * 24, // 1 jour
+    });
+
+    return { user };
+  }
+
+  /** Connexion */
+  @Post('login')
+  async login(
+    @Body('email') email: string,
+    @Body('password') password: string,
+    @Res({ passthrough: true }) res: Response
+  ) {
+    const utilisateur = await this.authService.validateUser(email, password);
+    const { access_token, user } = await this.authService.login(utilisateur);
+
+    res.cookie('jwt', access_token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 1000 * 60 * 60 * 24,
+    });
+
+    return { user }; // ✅ on renvoie simplement l'utilisateur
+  }
+
+  /** Déconnexion */
+  @Post('logout')
+  async logout(@Res({ passthrough: true }) res: Response) {
+    res.clearCookie('jwt');
+    return { message: 'Déconnecté' };
+  }
+
+  /** Récupérer l’utilisateur courant */
+  @UseGuards(JwtAuthGuard)
+  @Get('me')
+  async me(@Req() req: Request) {
+    return (req as any).user;
   }
 }

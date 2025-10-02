@@ -23,9 +23,7 @@ export class LoginComponent {
 
   onSubmit() {
     this.auth.login(this.email, this.password).subscribe({
-      next: (data) => {
-        localStorage.setItem('user', JSON.stringify(data.user));
-        localStorage.setItem('token', data.access_token);
+      next: () => {
         this.message = 'Connexion réussie ✅';
         this.router.navigate(['/plants']);
       },

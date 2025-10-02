@@ -2,29 +2,26 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { AuthService } from './auth.service';
+import { map, catchError } from 'rxjs/operators';
+import { of } from 'rxjs';
 
 // # Guard Admin
 export const AdminGuard: CanActivateFn = () => {
   const auth = inject(AuthService);
   const router = inject(Router);
 
-  // Vérifier si connecté + admin
-  const token = auth.getToken();
-  if (!token) {
-    router.navigate(['/login']);
-    return false;
-  }
-
-  try {
-    // Décoder payload du JWT
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    if (payload.admin === true) {
-      return true;
-    }
-  } catch {
-    // token invalide → retour login
-  }
-
-  router.navigate(['/']);
-  return false;
+  return auth.getCurrentUser().pipe(
+    map((user: any) => {
+      if (user && user.admin === true) {
+        return true;
+      } else {
+        router.navigate(['/login']);
+        return false;
+      }
+    }),
+    catchError(() => {
+      router.navigate(['/login']);
+      return of(false);
+    })
+  );
 };
