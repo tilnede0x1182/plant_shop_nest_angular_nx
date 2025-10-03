@@ -31,7 +31,12 @@ export class NavbarComponent implements OnInit {
       (count) => (this.nombreArticles = count)
     );
 
-    // écoute des changements utilisateur via BehaviorSubject uniquement
+    // récupérer l'utilisateur courant au chargement (important pour pages publiques)
+    this.auth.getCurrentUser().subscribe({
+      error: () => this.auth.user$.next(null),
+    });
+
+    // écoute des changements utilisateur
     this.auth.user$.subscribe((u) => {
       this.userName = this.capitalizeName(String(u?.name || ''));
       this.userId = u?.id ?? null;

@@ -63,14 +63,6 @@ export class UserDetailsComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Accède à l’édition de l’utilisateur courant.
-   */
-  allerEdit(): void {
-    if (!this.utilisateur) return;
-    this.router.navigate(['/admin/users/edit', this.utilisateur.id]);
-  }
-
-  /**
    * Supprime l’utilisateur puis revient à la liste.
    */
   supprimer(): void {
