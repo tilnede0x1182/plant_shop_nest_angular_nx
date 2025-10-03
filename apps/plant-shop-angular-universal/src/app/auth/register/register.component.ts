@@ -34,21 +34,10 @@ export class RegisterComponent {
       return;
     }
 
-    window.console.log('[Register] champs', {
-      name: this.name,
-      email: this.email,
-      password: this.password,
-      passwordConfirmation: this.passwordConfirmation,
-    });
-
     this.auth.register(this.email, this.password, this.name).subscribe({
       next: () => {
-        this.message = 'Compte créé ✅';
-        window.console.log('[Register] succès', {
-          name: this.name,
-          email: this.email,
-        });
-        this.router.navigate(['/plants']);
+        this.message = 'Compte créé ✅ – veuillez vous connecter';
+        this.router.navigate(['/login']);
       },
       error: (err) => {
         this.message = '❌ Erreur lors de la création du compte';

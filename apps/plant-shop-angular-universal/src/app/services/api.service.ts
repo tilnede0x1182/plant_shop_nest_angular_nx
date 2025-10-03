@@ -44,11 +44,9 @@ export class ApiService {
     return this.http.get<Plante>(`${this.base}/plants/${id}`);
   }
   creerPlante(data: Partial<Plante>): Observable<Plante> {
-    console.log('[API CALL] POST /plants avec', data);
     return this.http.post<Plante>(`${this.base}/plants`, data);
   }
   creerPlanteAdmin(data: Partial<Plante>): Observable<Plante> {
-    console.log('[API CALL] POST /admin/plants avec', data);
     return this.http.post<Plante>(`${this.base}/admin/plants`, data);
   }
   majPlanteAdmin(id: number, data: Partial<Plante>): Observable<Plante> {

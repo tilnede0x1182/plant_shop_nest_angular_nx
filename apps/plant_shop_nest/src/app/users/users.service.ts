@@ -46,38 +46,42 @@ export class UsersService {
   }
 
   /**
-    Création utilisateur (mot de passe hashé)
-    @dto données utilisateur
+    Création utilisateur
+    @dto données utilisateur (CreateUserDto)
+    @return utilisateur créé
   */
   async create(dto: CreateUserDto) {
-    const data = { ...dto, password: await bcrypt.hash(dto.password, 10) };
-    return this.prisma.user.create({ data });
+    const user = await this.prisma.user.create({ data: dto });
+    return user;
   }
 
   /**
-    Mise à jour utilisateur
-    @id identifiant utilisateur
-    @dto données mises à jour (hash password si présent)
+    Recherche utilisateur par email
+    @param email adresse email
+    @return utilisateur trouvé ou null
   */
-  async update(id: number, dto: UpdateUserDto) {
-    const data = { ...dto };
-    if (data.password) data.password = await bcrypt.hash(data.password, 10);
-    return this.prisma.user.update({ where: { id }, data });
+  async findByEmail(email: string) {
+    const user = await this.prisma.user.findUnique({ where: { email } });
+    return user;
   }
 
   /**
     Suppression utilisateur
     @id identifiant utilisateur
+    @return utilisateur supprimé
   */
   async remove(id: number) {
     return this.prisma.user.delete({ where: { id } });
   }
 
   /**
-    Cherche un utilisateur par email
-    @param email email utilisateur
+    Mise à jour utilisateur
+    @id identifiant utilisateur
+    @dto données à mettre à jour (UpdateUserDto)
+    @return utilisateur mis à jour
   */
-  async findByEmail(email: string) {
-    return this.prisma.user.findUnique({ where: { email } });
+  async update(id: number, dto: UpdateUserDto) {
+    const user = await this.prisma.user.update({ where: { id }, data: dto });
+    return user;
   }
 }

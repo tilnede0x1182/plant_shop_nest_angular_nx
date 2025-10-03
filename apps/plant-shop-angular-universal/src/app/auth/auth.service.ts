@@ -13,13 +13,11 @@ export class AuthService {
 
   /** Enregistrer un utilisateur */
   register(email: string, password: string, name?: string): Observable<any> {
-    return this.http
-      .post<any>(
-        `${this.apiUrl}/register`,
-        { email, password, name },
-        { withCredentials: true }
-      )
-      .pipe(tap(() => this.refreshUser()));
+    return this.http.post<any>(
+      `${this.apiUrl}/register`,
+      { email, password, name },
+      { withCredentials: true }
+    );
   }
 
   /** Login utilisateur */
