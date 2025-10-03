@@ -15,7 +15,7 @@
 		<tbody>
 			<tr *ngFor="let user of utilisateurs">
 				<td>
-					<a [routerLink]="['/users', user.id]" class="text-decoration-none text-dark">
+					<a [routerLink]="['/admin/users', user.id]" class="text-decoration-none text-dark">
 						{{ user.name }}
 					</a>
 				</td>
@@ -27,7 +27,7 @@
 				</td>
 				<td class="text-center">
 					<div class="d-flex justify-content-center gap-2">
-						<a [routerLink]="['/admin/users', user.id, 'edit']" class="btn btn-warning btn-sm">✏ Modifier</a>
+						<a [routerLink]="['/admin/users/edit', user.id]" class="btn btn-warning btn-sm">✏ Modifier</a>
 						<button (click)="supprimerUtilisateur(user.id)" class="btn btn-danger btn-sm">
 							🗑 Supprimer
 						</button>

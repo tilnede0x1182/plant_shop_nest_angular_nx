@@ -1,0 +1,33 @@
+<div class="container mt-4" *ngIf="!chargement">
+	<!-- Affichage erreurs -->
+	<div *ngIf="erreurs.length" class="alert alert-danger">
+		<ul>
+			<li *ngFor="let err of erreurs">{{ err }}</li>
+		</ul>
+	</div>
+
+	<!-- Si utilisateur trouvé -->
+	<div *ngIf="utilisateur">
+		<h1 *ngIf="utilisateur.name">
+			<strong>Nom :</strong> {{ utilisateur.name }}
+		</h1>
+		<p>
+			<strong>Email :</strong> {{ utilisateur.email }}
+		</p>
+
+		<!-- Bouton Modifier -->
+		<button class="btn btn-warning" (click)="allerEdit()">
+			Modifier
+		</button>
+
+		<!-- Bouton Supprimer -->
+		<button class="btn btn-danger btn-sm ms-2" (click)="supprimer()">
+			🗑 Supprimer
+		</button>
+	</div>
+
+	<!-- Si pas d'utilisateur -->
+	<div *ngIf="!utilisateur && !erreurs.length" class="alert alert-info">
+		Chargement...
+	</div>
+</div>
