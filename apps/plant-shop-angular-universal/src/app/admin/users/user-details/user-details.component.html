@@ -8,22 +8,21 @@
 
 	<!-- Si utilisateur trouvé -->
 	<div *ngIf="utilisateur">
-		<h1 *ngIf="utilisateur.name">
-			<strong>Nom :</strong> {{ utilisateur.name }}
-		</h1>
-		<p>
-			<strong>Email :</strong> {{ utilisateur.email }}
-		</p>
+		<h1 class="mb-4">Détails Utilisateur</h1>
 
-		<!-- Bouton Modifier -->
-		<button class="btn btn-warning" (click)="allerEdit()">
-			Modifier
-		</button>
+		<p><strong>Email :</strong> {{ utilisateur.email }}</p>
+		<p><strong>Nom :</strong> {{ utilisateur.name }}</p>
+		<p><strong>Administrateur :</strong> {{ utilisateur.admin ? 'Oui' : 'Non' }}</p>
 
-		<!-- Bouton Supprimer -->
-		<button class="btn btn-danger btn-sm ms-2" (click)="supprimer()">
-			🗑 Supprimer
-		</button>
+		<!-- Boutons actions -->
+		<div class="mt-3 d-flex gap-2">
+			<a [routerLink]="['/admin/users/edit', utilisateur?.id]" class="btn btn-warning">
+				Modifier
+			</a>
+			<button class="btn btn-danger btn-sm" (click)="supprimer()">
+				🗑 Supprimer
+			</button>
+		</div>
 	</div>
 
 	<!-- Si pas d'utilisateur -->
