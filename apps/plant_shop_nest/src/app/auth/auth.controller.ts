@@ -16,28 +16,16 @@ import { JwtAuthGuard } from './jwt-auth.guard';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  /** Inscription */
+  /**
+   * Inscription : crée un compte
+   */
   @Post('register')
   async register(
     @Body('email') email: string,
     @Body('password') password: string,
-    @Body('name') name: string,
-    @Res({ passthrough: true }) res: Response
+    @Body('name') name: string
   ) {
-    const { access_token, user } = await this.authService.register(
-      email,
-      password,
-      name
-    );
-
-    // Dépose le cookie httpOnly
-    res.cookie('jwt', access_token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 1000 * 60 * 60 * 24, // 1 jour
-    });
-
+    const user = await this.authService.register(email, password, name);
     return { user };
   }
 
@@ -58,7 +46,7 @@ export class AuthController {
       maxAge: 1000 * 60 * 60 * 24,
     });
 
-    return { user }; // ✅ on renvoie simplement l'utilisateur
+    return { user };
   }
 
   /** Déconnexion */

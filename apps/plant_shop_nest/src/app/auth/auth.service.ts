@@ -12,44 +12,35 @@ export class AuthService {
     private readonly jwtService: JwtService
   ) {}
 
-  /**
-   * Valider un utilisateur via email/mot de passe
-   */
-  async validateUser(email: string, password: string) {
-    const utilisateur = await this.usersService.findByEmail(email);
-    if (!utilisateur)
-      throw new UnauthorizedException('Utilisateur introuvable');
-
-    const valide = await bcrypt.compare(password, utilisateur.password);
-    if (!valide) throw new UnauthorizedException('Mot de passe invalide');
-
-    const { password: _, ...resultat } = utilisateur;
-    return resultat;
-  }
-
-  /**
-   * Générer un JWT pour un utilisateur
-   */
-  async login(utilisateur: any) {
-    const payload = {
-      sub: utilisateur.id,
-      email: utilisateur.email,
-      admin: utilisateur.admin,
-      name: utilisateur.name,
-    };
-    return {
-      access_token: this.jwtService.sign(payload),
-      user: utilisateur,
-    };
-  }
-
-  async register(email: string, password: string, name: string) {
+  async register(email: string, password: string, name?: string) {
     const hashed = await bcrypt.hash(password, 10);
     const utilisateur = await this.usersService.create({
       email,
       password: hashed,
       name,
     });
+
+    return {
+      id: utilisateur.id,
+      email: utilisateur.email,
+      name: utilisateur.name,
+      admin: utilisateur.admin,
+    };
+  }
+
+  async validateUser(email: string, password: string) {
+    const utilisateur = await this.usersService.findByEmail(email);
+    if (!utilisateur) throw new UnauthorizedException('Utilisateur inexistant');
+    const valide = await bcrypt.compare(password, utilisateur.password);
+    if (!valide) throw new UnauthorizedException('Mot de passe invalide');
+
+    return utilisateur;
+  }
+
+  /**
+   * Générer un JWT pour un utilisateur
+   */
+  async login(utilisateur: any) {
     const payload = {
       sub: utilisateur.id,
       email: utilisateur.email,
