@@ -3,6 +3,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { ApiService, Plante } from '../../services/api.service';
+import { AuthService } from '../../auth/auth.service';
 import { CartService } from '../../cart/cart.service';
 
 // # Données
@@ -19,18 +20,6 @@ function decodeJwt(token: string | null): any | null {
     return JSON.parse(atob(base));
   } catch {
     return null;
-  }
-}
-
-/** Détecte si l'utilisateur courant est admin à partir du JWT localStorage */
-function detectAdmin(): boolean {
-  try {
-    const token =
-      localStorage.getItem('access_token') || localStorage.getItem('token');
-    const payload = decodeJwt(token);
-    return Boolean(payload?.admin);
-  } catch {
-    return false;
   }
 }
 
@@ -53,19 +42,21 @@ export class PlantDetailComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private api = inject(ApiService);
+  private authService = inject(AuthService);
   private cartService = inject(CartService);
 
   protected plante: Plante | null = null;
   protected est_admin = false;
 
   /** Charge la plante et l'état admin */
-  ngOnInit() {
-    const identifiant = Number(this.route.snapshot.paramMap.get('id'));
-    this.api
-      .unePlante(identifiant)
-      .subscribe((donnees) => (this.plante = donnees));
-    // détection admin uniquement côté browser
-    if (typeof window !== 'undefined') this.est_admin = detectAdmin();
+  ngOnInit(): void {
+    const id = Number(this.route.snapshot.paramMap.get('id'));
+    this.api.unePlante(id).subscribe((plant: Plante) => (this.plante = plant));
+
+    this.authService.getCurrentUser().subscribe({
+      next: (user: any) => (this.est_admin = !!user?.admin),
+      error: () => (this.est_admin = false),
+    });
   }
 
   /** Ajoute la plante au panier (localStorage/instance globale) */
