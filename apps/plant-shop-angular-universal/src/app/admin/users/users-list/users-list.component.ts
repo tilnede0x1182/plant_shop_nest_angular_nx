@@ -30,7 +30,11 @@ export class AdminUsersListComponent implements OnInit {
    */
   chargerUtilisateurs(): void {
     this.api.listerUtilisateursAdmin().subscribe({
-      next: (data) => (this.utilisateurs = data),
+      next: (data) =>
+        (this.utilisateurs = data.sort((a, b) => {
+          if (a.admin === b.admin) return a.name.localeCompare(b.name);
+          return a.admin ? -1 : 1;
+        })),
       error: () =>
         (this.message = '❌ Erreur lors du chargement des utilisateurs'),
     });

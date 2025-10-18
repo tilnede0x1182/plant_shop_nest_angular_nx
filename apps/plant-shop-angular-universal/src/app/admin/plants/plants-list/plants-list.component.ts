@@ -30,7 +30,8 @@ export class AdminPlantsListComponent implements OnInit {
    */
   chargerPlantes(): void {
     this.api.listerPlantesAdmin().subscribe({
-      next: (plants) => (this.plantes = plants),
+      next: (plants) =>
+        (this.plantes = plants.sort((a, b) => a.name.localeCompare(b.name))),
       error: () => (this.message = '❌ Erreur lors du chargement des plantes'),
     });
 	}
