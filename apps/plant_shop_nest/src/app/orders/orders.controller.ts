@@ -16,7 +16,9 @@ import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
 import { Request } from 'express';
 
-// # Contrôleur Orders
+/**
+ * Contrôleur des commandes - gestion des ordres utilisateur.
+ */
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('orders')
 export class OrdersController {

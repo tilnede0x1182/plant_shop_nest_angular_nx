@@ -14,24 +14,32 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
 
-// # Contrôleur Plants
+/**
+ * Contrôleur des plantes - endpoints publics et admin.
+ */
 @Controller('plants')
 export class PlantsController {
   constructor(private readonly plantsService: PlantsService) {}
 
-  // Public
+  //**
+   * Liste toutes les plantes disponibles (public).
+   */
   @Get()
   findAll() {
     return this.plantsService.findAll();
   }
 
-  // Public
+  /**
+   * Détail d'une plante par id (public).
+   */
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.plantsService.findOne(+id);
   }
 
-  // Admin
+  /**
+   * Création d'une plante (admin).
+   */
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
   @Post()

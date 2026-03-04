@@ -11,6 +11,9 @@ export type CartItem = {
   stock: number;
 };
 
+/**
+ * Service de panier - gestion localStorage et compteur.
+ */
 @Injectable({ providedIn: 'root' })
 export class CartService {
   private storageKey = 'cart';

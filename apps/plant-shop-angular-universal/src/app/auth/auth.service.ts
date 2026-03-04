@@ -3,7 +3,9 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject, tap } from 'rxjs';
 
-// # Service d'authentification
+/**
+ * Service d'authentification Angular - login, register, session.
+ */
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private apiUrl = '/api/auth'; // proxy -> backend Nest

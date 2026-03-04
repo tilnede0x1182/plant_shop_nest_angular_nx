@@ -30,7 +30,9 @@ export type Commande = {
   }[];
 };
 
-// # Service API
+/**
+ * Service API - appels HTTP vers le backend NestJS.
+ */
 @Injectable({ providedIn: 'root' })
 export class ApiService {
   private http = inject(HttpClient);
