@@ -44,7 +44,7 @@ export class OrderItemsController {
     return this.orderItemsService.findOneForUser(+id, user);
   }
 
-  //**
+  /**
    * Crée un order-item.
    * @param data any Données de l'item
    * @param req any Requête avec user injecté
