@@ -1,4 +1,6 @@
-// # Importations
+/// ==============================================================================
+// Importations
+// ==============================================================================
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
@@ -6,13 +8,21 @@ import { ApiService, Plante } from '../../services/api.service';
 import { AuthService } from '../../auth/auth.service';
 import { CartService } from '../../cart/cart.service';
 
-// # Données
+/// ==============================================================================
+// Données
+// ==============================================================================
 type Cart = {
   add: (id: number, name: string, price: number, stock: number) => void;
 };
 
-// # Fonctions utilitaires
-/** Décoder un JWT (payload uniquement, sans vérification) */
+// ==============================================================================
+// Fonctions utilitaires
+// ==============================================================================
+/**
+ * Décoder un JWT (payload uniquement, sans vérification)
+ * @param token string|null Token JWT à décoder
+ * @return any|null Payload décodé ou null si échec
+ */
 function decodeJwt(token: string | null): any | null {
   try {
     if (!token) return null;
@@ -23,14 +33,21 @@ function decodeJwt(token: string | null): any | null {
   }
 }
 
-// # Fonctions utilitaires principales
+/// ==============================================================================
+// Fonctions utilitaires principales
+// ==============================================================================
 /** Récupère l'instance panier globale côté navigateur si disponible */
 function getCartInstance(): Cart | null {
   const win = globalThis as unknown as { cartInstance?: Cart };
   return win?.cartInstance ?? null;
 }
 
-// # Fonctions principales
+/// ==============================================================================
+// Fonctions principales
+// ==============================================================================
+/**
+ * Composant détail d'une plante : affiche les informations, ajout panier, suppression admin
+ */
 @Component({
   standalone: true,
   selector: 'app-plant-detail',

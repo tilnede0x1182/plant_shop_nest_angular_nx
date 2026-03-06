@@ -5,7 +5,9 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../auth.service';
 
-// # Composant Login
+/**
+ * Composant de connexion - formulaire login.
+ */
 @Component({
   selector: 'app-login',
   standalone: true,
@@ -21,6 +23,9 @@ export class LoginComponent {
   password = '';
   message = '';
 
+  /**
+   * Soumet le formulaire de connexion.
+   */
   onSubmit() {
     this.auth.login(this.email, this.password).subscribe({
       next: () => {

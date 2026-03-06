@@ -5,7 +5,10 @@ import { AuthService } from './auth.service';
 import { map, catchError } from 'rxjs/operators';
 import { of } from 'rxjs';
 
-// # Guard Admin
+/**
+ * Guard admin - redirige vers login si non admin.
+ * @returns Observable<boolean> True si utilisateur admin
+ */
 export const AdminGuard: CanActivateFn = () => {
   const auth = inject(AuthService);
   const router = inject(Router);

@@ -1,4 +1,6 @@
-// # Importations
+// ==============================================================================
+// Importations
+// ==============================================================================
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
@@ -6,6 +8,12 @@ import { ApiService, Plante } from '../../services/api.service';
 import { AuthService } from '../../auth/auth.service';
 import { CartService } from '../../cart/cart.service';
 
+// ==============================================================================
+// Fonctions principales
+// ==============================================================================
+/**
+ * Composant liste des plantes : affiche toutes les plantes en stock avec ajout au panier
+ */
 @Component({
   selector: 'app-plants-list',
   standalone: true,
@@ -39,7 +47,7 @@ export class PlantsListComponent implements OnInit {
 
   /**
    * Ajouter au panier
-   * @plante élément sélectionné
+   * @param plante Plante à ajouter au panier
    */
   addToCart(plante: Plante): void {
     this.cartService.add(plante.id, plante.name, plante.price, plante.stock);

@@ -1,4 +1,6 @@
-// # Importations
+// ==============================================================================
+// Importations
+// ==============================================================================
 import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
@@ -7,7 +9,12 @@ import { takeUntil } from 'rxjs/operators';
 import { ApiService, Utilisateur } from '../../../services/api.service';
 import { AuthService } from '../../../auth/auth.service';
 
-// # Composant
+// ==============================================================================
+// Fonctions principales
+// ==============================================================================
+/**
+ * Composant détail utilisateur (admin) : affiche les infos et permet suppression
+ */
 @Component({
   selector: 'app-user-details',
   standalone: true,
@@ -38,6 +45,7 @@ export class UserDetailsComponent implements OnInit, OnDestroy {
 
   /**
    * Charge l'utilisateur par ID.
+   * @param id Identifiant de l'utilisateur à charger
    */
   private chargerUtilisateur(id: number): void {
     this.api

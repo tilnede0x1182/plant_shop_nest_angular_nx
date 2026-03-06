@@ -1,9 +1,14 @@
-// # Importations
+// ==============================================================================
+// Importations
+// ==============================================================================
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { ApiService } from '../../../services/api.service';
 
+// ==============================================================================
+// Fonctions principales
+// ==============================================================================
 /**
  * AdminUsersListComponent – Liste des utilisateurs (admin)
  * Affiche un tableau CRUD des utilisateurs (comme Rails / Next)
@@ -21,6 +26,9 @@ export class AdminUsersListComponent implements OnInit {
   protected utilisateurs: any[] = [];
   protected message = '';
 
+  /**
+   * Initialise le composant et charge la liste des utilisateurs.
+   */
   ngOnInit(): void {
     this.chargerUtilisateurs();
   }
@@ -42,7 +50,7 @@ export class AdminUsersListComponent implements OnInit {
 
   /**
    * Supprime un utilisateur (avec confirmation)
-   * @id identifiant de l’utilisateur
+   * @param id Identifiant de l'utilisateur à supprimer
    */
   supprimerUtilisateur(id: number): void {
     if (!confirm('Supprimer cet utilisateur ?')) return;

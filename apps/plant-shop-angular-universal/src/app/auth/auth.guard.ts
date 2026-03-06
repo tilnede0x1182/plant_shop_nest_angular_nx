@@ -5,7 +5,10 @@ import { AuthService } from './auth.service';
 import { map, catchError } from 'rxjs/operators';
 import { of } from 'rxjs';
 
-// # Guard Auth
+/**
+ * Guard d'authentification - redirige vers login si non connecté.
+ * @returns Observable<boolean> True si utilisateur connecté
+ */
 export const AuthGuard: CanActivateFn = () => {
   const auth = inject(AuthService);
   const router = inject(Router);

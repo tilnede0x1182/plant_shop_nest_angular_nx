@@ -1,11 +1,18 @@
-// # Importations
+// ==============================================================================
+// Importations
+// ==============================================================================
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ApiService } from '../../../services/api.service';
 
-// # Composant PlantNew (admin)
+// ==============================================================================
+// Fonctions principales
+// ==============================================================================
+/**
+ * Composant création plante (admin) : formulaire de création nouvelle plante
+ */
 @Component({
   selector: 'app-plant-new',
   standalone: true,
@@ -21,7 +28,8 @@ export class PlantNewComponent {
   messageErreur: string | null = null;
 
   /**
-   * Soumission du formulaire de création
+   * Soumission du formulaire de création.
+   * @param event Événement de soumission du formulaire
    */
   onSubmit(event: Event) {
     event.preventDefault();

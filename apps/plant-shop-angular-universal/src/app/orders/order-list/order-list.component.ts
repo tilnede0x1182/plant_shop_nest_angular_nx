@@ -1,16 +1,29 @@
-// # Importations
+/// ==============================================================================
+// Importations
+// ==============================================================================
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { ApiService, Commande } from '../../services/api.service';
 
-// # Fonctions utilitaires
-/** Formate la date ISO en locale */
+/// ==============================================================================
+// Fonctions utilitaires
+// ==============================================================================
+/**
+ * Formate la date ISO en locale
+ * @param dateIso string Date au format ISO
+ * @returns string Date formatée en locale
+ */
 function formaterDate(dateIso: string): string {
   return new Date(dateIso).toLocaleString();
 }
 
-// # Fonctions principales
+// ==============================================================================
+// Fonctions principales
+// ==============================================================================
+/**
+ * Composant liste des commandes - affiche les commandes de l'utilisateur.
+ */
 @Component({
   standalone: true,
   selector: 'app-order-list',
@@ -29,6 +42,11 @@ export class OrderListComponent implements OnInit {
     });
   }
 
+  /**
+   * Formate une date ISO en locale.
+   * @param dateIso Date au format ISO
+   * @returns string Date formatée
+   */
   protected formater(dateIso: string) {
     return formaterDate(dateIso);
   }

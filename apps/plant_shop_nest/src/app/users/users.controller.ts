@@ -1,4 +1,6 @@
-// # Importations
+// ==============================================================================
+// Importations
+// ==============================================================================
 import {
   Controller,
   Get,
@@ -16,6 +18,9 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
 
+// ==============================================================================
+// Contrôleur
+// ==============================================================================
 /**
  * Contrôleur des utilisateurs - gestion profils et administration.
  */
@@ -24,12 +29,23 @@ import { Roles } from '../auth/roles.decorator';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
+  /**
+   * Liste tous les utilisateurs (admin uniquement).
+   * @returns Promise<User[]> Liste des utilisateurs
+   */
   @Roles('admin')
   @Get()
   findAll() {
     return this.usersService.findAll();
   }
 
+  /**
+   * Détail d'un utilisateur (admin ou propriétaire).
+   * @param id string ID de l'utilisateur
+   * @param req any Requête avec user injecté
+   * @returns Promise<User> Utilisateur trouvé
+   * @throws ForbiddenException Si accès non autorisé
+   */
   @Get(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   async findOne(@Param('id') id: string, @Req() req) {
@@ -49,13 +65,25 @@ export class UsersController {
     throw new ForbiddenException('Accès refusé');
   }
 
+  /**
+   * Création d'un utilisateur (admin uniquement).
+   * @param data any Données de l'utilisateur
+   * @returns Promise<User> Utilisateur créé
+   */
   @Roles('admin')
   @Post()
   create(@Body() data: any) {
     return this.usersService.create(data);
   }
 
-  // Admin ou utilisateur propriétaire
+  /**
+   * Mise à jour d'un utilisateur (admin ou propriétaire).
+   * @param id string ID de l'utilisateur
+   * @param data any Données à mettre à jour
+   * @param req any Requête avec user injecté
+   * @returns Promise<User> Utilisateur mis à jour
+   * @throws ForbiddenException Si accès non autorisé
+   */
   @Patch(':id')
   async update(@Param('id') id: string, @Body() data: any, @Req() req) {
     const userId = +id;
@@ -76,6 +104,11 @@ export class UsersController {
     throw new ForbiddenException('Accès refusé');
   }
 
+  /**
+   * Suppression d'un utilisateur (admin uniquement).
+   * @param id string ID de l'utilisateur
+   * @returns Promise<User> Utilisateur supprimé
+   */
   @Roles('admin')
   @Delete(':id')
   remove(@Param('id') id: string) {

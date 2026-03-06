@@ -1,4 +1,6 @@
-// # Importations
+// ==============================================================================
+// Importations
+// ==============================================================================
 import {
   Injectable,
   NotFoundException,
@@ -8,17 +10,20 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { CreateOrderDto, UpdateOrderDto } from './dto/order.dto';
 import { User } from '@prisma/client';
 
+// ==============================================================================
+// Service
+// ==============================================================================
 /**
-  Service métier des commandes, accès base via Prisma
-  @constructor PrismaService service Prisma injecté
-*/
+ * Service métier des commandes, accès base via Prisma.
+ */
 @Injectable()
 export class OrdersService {
   constructor(private readonly prisma: PrismaService) {}
 
   /**
-    Liste toutes les commandes (optionnel : inclure items/plantes)
-  */
+   * Liste toutes les commandes (admin).
+   * @returns Promise<Order[]> Toutes les commandes avec items et plantes
+   */
   async list() {
     return this.prisma.order.findMany({
       include: { orderItems: { include: { plant: true } } },
@@ -26,8 +31,9 @@ export class OrdersService {
   }
 
   /**
-   * Liste les commandes de l’utilisateur courant uniquement
-   * @userId identifiant de l’utilisateur connecté
+   * Liste les commandes de l'utilisateur courant uniquement.
+   * @param userId number Identifiant de l'utilisateur connecté
+   * @returns Promise<Order[]> Commandes de l'utilisateur
    */
   async findAll(userId: number) {
     return this.prisma.order.findMany({
@@ -38,9 +44,11 @@ export class OrdersService {
   }
 
   /**
-    Détail commande par id (inclut items/plantes)
-    @id identifiant numérique commande
-  */
+   * Détail commande par id (inclut items/plantes).
+   * @param id number Identifiant de la commande
+   * @returns Promise<Order> Commande avec détails
+   * @throws NotFoundException Si commande inexistante
+   */
   async one(id: number) {
     const order = await this.prisma.order.findUnique({
       where: { id },
@@ -51,10 +59,12 @@ export class OrdersService {
   }
 
   /**
-    retourne une commande pour un utilisateur donné
-    @id identifiant de la commande
-    @user utilisateur connecté
-  */
+   * Retourne une commande pour un utilisateur donné.
+   * @param id number Identifiant de la commande
+   * @param user User Utilisateur connecté
+   * @returns Promise<Order> Commande si autorisé
+   * @throws NotFoundException Si commande inexistante ou non autorisée
+   */
   async findOneForUser(id: number, user: User) {
     if (user.admin) {
       return this.one(id); // admin → accès global
@@ -69,10 +79,12 @@ export class OrdersService {
   }
 
   /**
-    Création commande (corrigé pour attendre aussi l’utilisateur)
-    @dto données commande
-    @user utilisateur connecté
-  */
+   * Création d'une commande avec ses items.
+   * @param dto CreateOrderDto Données de la commande
+   * @param user User Utilisateur connecté
+   * @returns Promise<Order> Commande créée
+   * @throws BadRequestException Si stock insuffisant
+   */
   async create(dto: CreateOrderDto, user: User) {
     let total = 0;
     const { items } = dto;
@@ -107,18 +119,20 @@ export class OrdersService {
   }
 
   /**
-    Mise à jour commande (statut, items)
-    @id identifiant commande
-    @dto données mises à jour
-  */
+   * Mise à jour d'une commande (statut, items).
+   * @param id number Identifiant de la commande
+   * @param dto UpdateOrderDto Données mises à jour
+   * @returns Promise<Order> Commande mise à jour
+   */
   async update(id: number, dto: UpdateOrderDto) {
     return this.prisma.order.update({ where: { id }, data: dto });
   }
 
   /**
-    Suppression commande (+ suppression items liés)
-    @id identifiant commande
-  */
+   * Suppression d'une commande (+ suppression items liés).
+   * @param id number Identifiant de la commande
+   * @returns Promise<Order> Commande supprimée
+   */
   async remove(id: number) {
     await this.prisma.orderItem.deleteMany({ where: { orderId: id } });
     return this.prisma.order.delete({ where: { id } });

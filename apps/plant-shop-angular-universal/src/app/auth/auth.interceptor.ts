@@ -6,9 +6,10 @@ import {
 } from '@angular/common/http';
 
 /**
- * Intercepteur Auth
- * - On ne gère plus de JWT en localStorage
- * - On force uniquement withCredentials pour inclure le cookie httpOnly
+ * Intercepteur Auth - force withCredentials pour inclure le cookie httpOnly.
+ * @param req HttpRequest Requête HTTP entrante
+ * @param next HttpHandlerFn Handler suivant
+ * @returns Observable<HttpEvent> Réponse HTTP
  */
 export const authInterceptor: HttpInterceptorFn = (
   req: HttpRequest<unknown>,

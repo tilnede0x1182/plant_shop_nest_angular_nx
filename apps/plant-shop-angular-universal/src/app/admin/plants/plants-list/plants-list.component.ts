@@ -1,9 +1,14 @@
-// # Importations
+// ==============================================================================
+// Importations
+// ==============================================================================
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { ApiService } from '../../../services/api.service';
 
+// ==============================================================================
+// Fonctions principales
+// ==============================================================================
 /**
  * AdminPlantsListComponent – Liste des plantes (admin)
  * Affiche un tableau CRUD des plantes (comme Rails / Next)
@@ -21,6 +26,9 @@ export class AdminPlantsListComponent implements OnInit {
   protected plantes: any[] = [];
   protected message = '';
 
+  /**
+   * Initialise le composant et charge la liste des plantes.
+   */
   ngOnInit(): void {
     this.chargerPlantes();
   }
@@ -38,7 +46,7 @@ export class AdminPlantsListComponent implements OnInit {
 
   /**
    * Supprime une plante (avec confirmation)
-   * @id identifiant de la plante
+   * @param id Identifiant de la plante à supprimer
    */
   supprimerPlante(id: number): void {
     if (!confirm('Supprimer cette plante ?')) return;

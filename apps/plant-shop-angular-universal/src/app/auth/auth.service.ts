@@ -13,7 +13,13 @@ export class AuthService {
 
   constructor(private http: HttpClient) {}
 
-  /** Enregistrer un utilisateur */
+  /**
+   * Enregistre un nouvel utilisateur.
+   * @param email string Adresse email de l'utilisateur
+   * @param password string Mot de passe
+   * @param name string Nom de l'utilisateur (optionnel)
+   * @returns Observable<any> Réponse serveur
+   */
   register(email: string, password: string, name?: string): Observable<any> {
     return this.http.post<any>(
       `${this.apiUrl}/register`,
@@ -22,7 +28,12 @@ export class AuthService {
     );
   }
 
-  /** Login utilisateur */
+  /**
+   * Connecte un utilisateur.
+   * @param email string Adresse email
+   * @param password string Mot de passe
+   * @returns Observable<any> Réponse serveur
+   */
   login(email: string, password: string): Observable<any> {
     return this.http
       .post<any>(
@@ -33,21 +44,29 @@ export class AuthService {
       .pipe(tap(() => this.refreshUser()));
   }
 
-  /** Logout */
+  /**
+   * Déconnecte l'utilisateur.
+   * @returns Observable<any> Réponse serveur
+   */
   logout(): Observable<any> {
     return this.http
       .post(`${this.apiUrl}/logout`, {}, { withCredentials: true })
       .pipe(tap(() => this.user$.next(null)));
   }
 
-  /** Récupérer l’utilisateur courant (via cookie httpOnly) */
+  /**
+   * Récupère l'utilisateur courant (via cookie httpOnly).
+   * @returns Observable<any> Données utilisateur
+   */
   getCurrentUser(): Observable<any> {
     return this.http
       .get<any>(`${this.apiUrl}/me`, { withCredentials: true })
       .pipe(tap((user) => this.user$.next(user)));
   }
 
-  /** Utilitaire interne : recharge l’utilisateur après login/register */
+  /**
+   * Recharge l'utilisateur après login/register.
+   */
   private refreshUser(): void {
     this.getCurrentUser().subscribe({
       next: (user) => this.user$.next(user),

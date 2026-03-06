@@ -1,9 +1,16 @@
-// # Importations
+// ==============================================================================
+// Importations
+// ==============================================================================
 import { Injectable, ExecutionContext } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { Response } from 'express';
 
-// # Guard basé sur JWT avec gestion des routes publiques et redirections
+// ==============================================================================
+// Guard
+// ==============================================================================
+/**
+ * Guard JWT avec gestion des routes publiques et redirections.
+ */
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
   private publicRoutes: string[] = [
@@ -15,6 +22,11 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     '/favicon.ico',
   ];
 
+  /**
+   * Vérifie si la route nécessite authentification.
+   * @param context ExecutionContext Contexte d'exécution NestJS
+   * @returns boolean|Promise<boolean> True si accès autorisé
+   */
   canActivate(context: ExecutionContext) {
     const req = context.switchToHttp().getRequest();
     const path: string = req.path;
@@ -37,6 +49,14 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     return super.canActivate(context);
   }
 
+  /**
+   * Gère la requête après validation du JWT.
+   * @param err any Erreur éventuelle
+   * @param user any Utilisateur décodé
+   * @param info any Infos supplémentaires
+   * @param context ExecutionContext Contexte d'exécution
+   * @returns any Utilisateur ou redirection
+   */
   handleRequest(err: any, user: any, info: any, context: ExecutionContext) {
     const req = context.switchToHttp().getRequest();
     const res = context.switchToHttp().getResponse<Response>();

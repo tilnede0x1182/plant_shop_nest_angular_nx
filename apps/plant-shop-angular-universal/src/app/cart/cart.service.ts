@@ -25,7 +25,13 @@ export class CartService {
     this.updateCount();
   }
 
-  /** Ajouter une plante */
+  /**
+   * Ajoute une plante au panier.
+   * @param id number Identifiant de la plante
+   * @param name string Nom de la plante
+   * @param price number Prix unitaire
+   * @param stock number Stock disponible
+   */
   add(id: number, name: string, price: number, stock: number) {
     if (!this.items[id]) {
       this.items[id] = { id, name, price, quantity: 0, stock };
@@ -45,7 +51,12 @@ export class CartService {
     this.updateCount(); // Persistance + compteur
   }
 
-  /** Mettre à jour quantité */
+  /**
+   * Met à jour la quantité d'un article.
+   * @param id number Identifiant de la plante
+   * @param quantity number Nouvelle quantité
+   * @returns number Quantité corrigée (bornée au stock)
+   */
   update(id: number, quantity: number): number {
     if (!this.items[id]) return 0;
     const stock = this.items[id].stock;
@@ -63,26 +74,37 @@ export class CartService {
     return corrected;
   }
 
-  /** Supprimer un produit */
+  /**
+   * Supprime un produit du panier.
+   * @param id number Identifiant de la plante
+   */
   remove(id: number) {
     delete this.items[id];
     this.save();
     this.updateCount();
   }
 
-  /** Vider le panier */
+  /**
+   * Vide le panier.
+   */
   clear() {
     this.items = {};
     localStorage.removeItem(this.storageKey);
     this.updateCount();
   }
 
-  /** Récupérer le contenu du panier */
+  /**
+   * Récupère le contenu du panier.
+   * @returns CartItem[] Liste des articles
+   */
   getAll(): CartItem[] {
     return Object.values(this.items);
   }
 
-  /** Total général */
+  /**
+   * Calcule le total général du panier.
+   * @returns number Total en euros
+   */
   getTotal(): number {
     return this.getAll().reduce(
       (sum, item) => sum + item.price * item.quantity,
@@ -90,7 +112,10 @@ export class CartService {
     );
   }
 
-  /** Payload API */
+  /**
+   * Génère le payload pour créer une commande.
+   * @returns Array<{plantId, quantity}> Données pour l'API
+   */
   toOrderPayload() {
     return this.getAll().map((item) => ({
       plantId: item.id,
@@ -98,18 +123,26 @@ export class CartService {
     }));
   }
 
-  /** Charger depuis localStorage */
+  /**
+   * Charge le panier depuis localStorage.
+   */
   private load() {
     const raw = localStorage.getItem(this.storageKey);
     this.items = raw ? JSON.parse(raw) : {};
   }
 
-  /** Sauvegarder dans localStorage */
+  /**
+   * Sauvegarde le panier dans localStorage.
+   */
   private save() {
     localStorage.setItem(this.storageKey, JSON.stringify(this.items));
   }
 
-  /** Modale stock insuffisant (alignée sur l'implémentation Rails) */
+  /**
+   * Affiche une alerte de stock insuffisant.
+   * @param name string Nom de la plante
+   * @param stock number Stock restant
+   */
   private showStockAlert(name: string, stock: number) {
     if (typeof window === 'undefined' || !document?.body) return;
     const alert = document.createElement('div');
@@ -139,7 +172,9 @@ export class CartService {
     }, 3000);
   }
 
-  /** Mettre à jour compteur */
+  /**
+   * Met à jour le compteur d'articles du panier.
+   */
   private updateCount() {
     const total = this.getAll().reduce((sum, item) => sum + item.quantity, 0);
     this.cartCount$.next(total);

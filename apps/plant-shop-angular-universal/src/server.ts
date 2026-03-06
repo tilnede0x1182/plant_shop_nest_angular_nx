@@ -7,7 +7,10 @@ import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import bootstrap from './main.server';
 
-// The Express app is exported so that it can be used by serverless Functions.
+/**
+ * Crée et configure l'application Express pour le SSR Angular.
+ * @returns express.Express Instance Express configurée
+ */
 export function app(): express.Express {
   const server = express();
   const distFolder = join(
@@ -55,6 +58,9 @@ export function app(): express.Express {
   return server;
 }
 
+/**
+ * Lance le serveur Express SSR sur le port configuré
+ */
 function run(): void {
   const port = process.env['PORT'] || 4000;
 

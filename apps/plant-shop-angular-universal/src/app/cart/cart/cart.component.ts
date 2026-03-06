@@ -5,7 +5,9 @@ import { RouterModule } from '@angular/router';
 import { CartService, CartItem } from '../cart.service';
 import { FormsModule } from '@angular/forms';
 
-// # Composant Cart
+/**
+ * Composant panier - affichage et gestion du panier d'achat.
+ */
 @Component({
   selector: 'app-cart',
   standalone: true,
@@ -22,10 +24,16 @@ export class CartComponent {
   private lineTotals: Record<number, number> = {};
   private lineTimers: Record<number, any> = {};
 
+  /**
+   * Initialise le composant et charge le panier.
+   */
   ngOnInit(): void {
     this.refresh(true);
   }
 
+  /**
+   * Programme la mise à jour différée du total.
+   */
   private scheduleTotalUpdate() {
     clearTimeout(this.totalTimer);
     this.totalTimer = setTimeout(() => {
@@ -36,10 +44,19 @@ export class CartComponent {
     }, 300);
   }
 
+  /**
+   * Récupère le total d'une ligne.
+   * @param id number Identifiant de la plante
+   * @returns number Total de la ligne
+   */
   getLineTotal(id: number): number {
     return this.lineTotals[id] ?? 0;
   }
 
+  /**
+   * Programme la mise à jour différée du total d'une ligne.
+   * @param item CartItem Article du panier
+   */
   private scheduleLineTotalUpdate(item: CartItem) {
     clearTimeout(this.lineTimers[item.id]);
     this.lineTimers[item.id] = setTimeout(() => {
@@ -47,6 +64,10 @@ export class CartComponent {
     }, 300);
   }
 
+  /**
+   * Rafraîchit le panier.
+   * @param initial boolean Si true, calcul instantané des totaux
+   */
   refresh(initial: boolean = false) {
     this.items = this.cart.getAll();
 
@@ -68,11 +89,19 @@ export class CartComponent {
     }
   }
 
+  /**
+   * Incrémente la quantité d'un article.
+   * @param item CartItem Article à incrémenter
+   */
   increment(item: CartItem) {
     this.cart.update(item.id, item.quantity + 1);
     this.refresh();
   }
 
+  /**
+   * Décrémente la quantité d'un article.
+   * @param item CartItem Article à décrémenter
+   */
   decrement(item: CartItem) {
     if (item.quantity > 1) {
       this.cart.update(item.id, item.quantity - 1);
@@ -80,6 +109,11 @@ export class CartComponent {
     }
   }
 
+  /**
+   * Met à jour la quantité avec délai.
+   * @param id number Identifiant de la plante
+   * @param value any Nouvelle valeur
+   */
   delayedUpdate(id: number, value: any) {
     clearTimeout(this.timers[id]);
     const num = Number(value);
@@ -94,16 +128,27 @@ export class CartComponent {
     }, 300);
   }
 
+  /**
+   * Supprime un article du panier.
+   * @param id number Identifiant de la plante
+   */
   remove(id: number) {
     this.cart.remove(id);
     this.refresh();
   }
 
+  /**
+   * Vide le panier.
+   */
   clear() {
     this.cart.clear();
     this.refresh();
   }
 
+  /**
+   * Retourne le total du panier.
+   * @returns number Total en euros
+   */
   total(): number {
     return this.totalValue;
   }

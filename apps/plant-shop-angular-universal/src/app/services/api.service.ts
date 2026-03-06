@@ -1,9 +1,13 @@
-// # Importations
+/// ==============================================================================
+// Importations
+// ==============================================================================
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
-// # Types simples
+/// ==============================================================================
+// Types simples
+// ==============================================================================
 export type Plante = {
   id: number;
   name: string;
@@ -30,6 +34,9 @@ export type Commande = {
   }[];
 };
 
+// ==============================================================================
+// Service API
+// ==============================================================================
 /**
  * Service API - appels HTTP vers le backend NestJS.
  */
@@ -39,64 +46,153 @@ export class ApiService {
   private base = '/api'; // proxy vers backend Nest
 
   /* ---------- Plantes ---------- */
+  /**
+   * Liste toutes les plantes.
+   * @return Observable de la liste des plantes
+   */
   listerPlantes(): Observable<Plante[]> {
     return this.http.get<Plante[]>(`${this.base}/plants`);
   }
+  /**
+   * Récupère une plante par son ID.
+   * @param id Identifiant de la plante
+   * @return Observable de la plante
+   */
   unePlante(id: number): Observable<Plante> {
     return this.http.get<Plante>(`${this.base}/plants/${id}`);
   }
+  /**
+   * Crée une nouvelle plante.
+   * @param data Données de la plante
+   * @return Observable de la plante créée
+   */
   creerPlante(data: Partial<Plante>): Observable<Plante> {
     return this.http.post<Plante>(`${this.base}/plants`, data);
   }
+  /**
+   * Crée une plante (admin).
+   * @param data Données de la plante
+   * @return Observable de la plante créée
+   */
   creerPlanteAdmin(data: Partial<Plante>): Observable<Plante> {
     return this.http.post<Plante>(`${this.base}/admin/plants`, data);
   }
+  /**
+   * Met à jour une plante (admin).
+   * @param id Identifiant de la plante
+   * @param data Données à mettre à jour
+   * @return Observable de la plante modifiée
+   */
   majPlanteAdmin(id: number, data: Partial<Plante>): Observable<Plante> {
     return this.http.patch<Plante>(`${this.base}/admin/plants/${id}`, data);
   }
+  /**
+   * Liste toutes les plantes (admin).
+   * @return Observable de la liste des plantes
+   */
   listerPlantesAdmin(): Observable<Plante[]> {
     return this.http.get<Plante[]>(`${this.base}/admin/plants`);
   }
+  /**
+   * Supprime une plante (admin).
+   * @param id Identifiant de la plante
+   * @return Observable void
+   */
   supprimerPlanteAdmin(id: number): Observable<void> {
     return this.http.delete<void>(`${this.base}/admin/plants/${id}`);
   }
 
   /* ---------- Utilisateurs ---------- */
+  /**
+   * Liste tous les utilisateurs.
+   * @return Observable de la liste des utilisateurs
+   */
   listerUtilisateurs(): Observable<Utilisateur[]> {
     return this.http.get<Utilisateur[]>(`${this.base}/users`);
   }
+  /**
+   * Récupère un utilisateur par son ID.
+   * @param id Identifiant de l'utilisateur
+   * @return Observable de l'utilisateur
+   */
   unUtilisateur(id: number): Observable<Utilisateur> {
     return this.http.get<Utilisateur>(`${this.base}/users/${id}`);
   }
+  /**
+   * Met à jour le profil utilisateur.
+   * @param id Identifiant de l'utilisateur
+   * @param data Données à mettre à jour
+   * @return Observable de l'utilisateur modifié
+   */
   majProfile(id: number, data: Partial<Utilisateur>): Observable<Utilisateur> {
     return this.http.patch<Utilisateur>(`${this.base}/users/${id}`, data);
   }
+  /**
+   * Met à jour un utilisateur (admin).
+   * @param id Identifiant de l'utilisateur
+   * @param data Données à mettre à jour
+   * @return Observable de l'utilisateur modifié
+   */
   majUtilisateurAdmin(
     id: number,
     data: Partial<Utilisateur>
   ): Observable<Utilisateur> {
     return this.http.patch<Utilisateur>(`${this.base}/admin/users/${id}`, data);
   }
+  /**
+   * Liste tous les utilisateurs (admin).
+   * @return Observable de la liste des utilisateurs
+   */
   listerUtilisateursAdmin(): Observable<Utilisateur[]> {
     return this.http.get<Utilisateur[]>(`${this.base}/admin/users`);
   }
+  /**
+   * Supprime un utilisateur (admin).
+   * @param id Identifiant de l'utilisateur
+   * @return Observable void
+   */
   supprimerUtilisateurAdmin(id: number): Observable<void> {
     return this.http.delete<void>(`${this.base}/admin/users/${id}`);
   }
 
   /* ---------- Commandes ---------- */
+  /**
+   * Liste les commandes de l'utilisateur courant.
+   * @return Observable de la liste des commandes
+   */
   listerCommandes(): Observable<Commande[]> {
     return this.http.get<Commande[]>(`${this.base}/orders`);
   }
+  /**
+   * Récupère une commande par son ID.
+   * @param id Identifiant de la commande
+   * @return Observable de la commande
+   */
   uneCommande(id: number): Observable<Commande> {
     return this.http.get<Commande>(`${this.base}/orders/${id}`);
   }
+  /**
+   * Crée une nouvelle commande.
+   * @param data Données de la commande
+   * @return Observable de la commande créée
+   */
   creerCommande(data: any): Observable<Commande> {
     return this.http.post<Commande>(`${this.base}/orders`, data);
   }
+  /**
+   * Met à jour une commande.
+   * @param id Identifiant de la commande
+   * @param data Données à mettre à jour
+   * @return Observable de la commande modifiée
+   */
   majCommande(id: number, data: any): Observable<Commande> {
     return this.http.patch<Commande>(`${this.base}/orders/${id}`, data);
   }
+  /**
+   * Supprime une commande.
+   * @param id Identifiant de la commande
+   * @return Observable void
+   */
   supprimerCommande(id: number): Observable<void> {
     return this.http.delete<void>(`${this.base}/orders/${id}`);
   }

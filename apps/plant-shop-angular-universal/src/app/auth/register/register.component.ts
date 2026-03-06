@@ -5,7 +5,9 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../auth.service';
 
-// # Composant Register
+/**
+ * Composant d'inscription - formulaire register.
+ */
 @Component({
   selector: 'app-register',
   standalone: true,
@@ -23,6 +25,9 @@ export class RegisterComponent {
   message = '';
   passwordConfirmation: string = '';
 
+  /**
+   * Soumet le formulaire d'inscription.
+   */
   onSubmit() {
     if (this.password !== this.passwordConfirmation) {
       this.message = '❌ Les mots de passe ne correspondent pas';

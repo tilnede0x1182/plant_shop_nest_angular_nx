@@ -1,4 +1,6 @@
-// # Importations
+// ==============================================================================
+// Importations
+// ==============================================================================
 import {
   Controller,
   Get,
@@ -15,41 +17,68 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
 
-// # Contrôleur OrderItems
+// ==============================================================================
+// Contrôleur
+// ==============================================================================
+/**
+ * Contrôleur OrderItems - gestion des items de commande.
+ */
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('order-items')
 export class OrderItemsController {
   constructor(private readonly orderItemsService: OrderItemsService) {}
 
-  // ✅ Un admin peut voir tous les order-items
+  /**
+   * Liste tous les order-items (admin uniquement).
+   * @returns Promise<OrderItem[]> Liste des order-items
+   */
   @Roles('admin')
   @Get()
   findAll() {
     return this.orderItemsService.findAll();
   }
 
-  // ✅ Un utilisateur peut consulter un order-item uniquement si lié à sa commande
+  /**
+   * Détail d'un order-item (propriétaire ou admin).
+   * @param id string ID de l'order-item
+   * @param req any Requête avec user injecté
+   * @returns Promise<OrderItem> Order-item trouvé
+   */
   @Get(':id')
   findOne(@Param('id') id: string, @Req() req: any) {
     const user = req.user;
     return this.orderItemsService.findOneForUser(+id, user);
   }
 
-  // ✅ Tout utilisateur connecté peut ajouter un item à sa commande
+  //**
+   * Crée un order-item.
+   * @param data any Données de l'item
+   * @param req any Requête avec user injecté
+   * @returns Promise<OrderItem> Order-item créé
+   */
   @Post()
   create(@Body() data: any, @Req() req: any) {
     const user = req.user;
     return this.orderItemsService.create(data, user);
   }
 
-  // ✅ Admin peut modifier un item (ex. quantité)
+  /**
+   * Mise à jour d'un order-item (admin uniquement).
+   * @param id string ID de l'order-item
+   * @param data any Données à mettre à jour
+   * @returns Promise<OrderItem> Order-item mis à jour
+   */
   @Roles('admin')
   @Patch(':id')
   update(@Param('id') id: string, @Body() data: any) {
     return this.orderItemsService.update(+id, data);
   }
 
-  // ✅ Admin peut supprimer un item
+  /**
+   * Suppression d'un order-item (admin uniquement).
+   * @param id string ID de l'order-item
+   * @returns Promise<OrderItem> Order-item supprimé
+   */
   @Roles('admin')
   @Delete(':id')
   remove(@Param('id') id: string) {

@@ -1,4 +1,6 @@
-// # Importations
+// ==============================================================================
+// Importations
+// ==============================================================================
 import {
   Controller,
   Post,
@@ -12,6 +14,9 @@ import { Response, Request } from 'express';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
 
+// ==============================================================================
+// Contrôleur
+// ==============================================================================
 /**
  * Contrôleur d'authentification - login, register, logout.
  */
@@ -20,7 +25,11 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   /**
-   * Inscription : crée un compte
+   * Inscription : crée un compte.
+   * @param email string Email de l'utilisateur
+   * @param password string Mot de passe
+   * @param name string Nom de l'utilisateur
+   * @returns Promise<{user}> Utilisateur créé
    */
   @Post('register')
   async register(
@@ -32,7 +41,13 @@ export class AuthController {
     return { user };
   }
 
-  /** Connexion */
+  /**
+   * Connexion utilisateur.
+   * @param email string Email
+   * @param password string Mot de passe
+   * @param res Response Réponse Express pour le cookie
+   * @returns Promise<{user}> Utilisateur connecté
+   */
   @Post('login')
   async login(
     @Body('email') email: string,
@@ -52,14 +67,22 @@ export class AuthController {
     return { user };
   }
 
-  /** Déconnexion */
+  /**
+   * Déconnexion utilisateur.
+   * @param res Response Réponse Express pour supprimer le cookie
+   * @returns Promise<{message}> Message de confirmation
+   */
   @Post('logout')
   async logout(@Res({ passthrough: true }) res: Response) {
     res.clearCookie('jwt');
     return { message: 'Déconnecté' };
   }
 
-  /** Récupérer l’utilisateur courant */
+  /**
+   * Récupérer l'utilisateur courant.
+   * @param req Request Requête avec user injecté
+   * @returns Promise<User> Données utilisateur
+   */
   @UseGuards(JwtAuthGuard)
   @Get('me')
   async me(@Req() req: Request) {

@@ -1,4 +1,6 @@
-// # Importations
+// ==============================================================================
+// Importations
+// ==============================================================================
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
@@ -6,7 +8,12 @@ import { CartService } from '../../cart/cart.service';
 import { ApiService } from '../../services/api.service';
 import { RouterModule } from '@angular/router';
 
-// # Composant OrderNew
+// ==============================================================================
+// Fonctions principales
+// ==============================================================================
+/**
+ * Composant création commande : affiche le récapitulatif et permet de valider
+ */
 @Component({
   selector: 'app-order-new',
   standalone: true,
@@ -22,12 +29,18 @@ export class OrderNewComponent {
   protected message = '';
   protected total = 0;
 
+  /**
+   * Initialise le composant et calcule le total.
+   */
   ngOnInit() {
     // calcul total dès l’affichage
     const items = this.cart.getAll();
     this.total = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
   }
 
+  /**
+   * Soumet la commande au backend.
+   */
   passerCommande() {
     const items = this.cart.toOrderPayload();
 

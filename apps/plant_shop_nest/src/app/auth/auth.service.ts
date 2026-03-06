@@ -1,9 +1,14 @@
-// # Importations
+// ==============================================================================
+// Importations
+// ==============================================================================
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import * as bcrypt from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';
 
+// ==============================================================================
+// Service
+// ==============================================================================
 /**
  * Service d'authentification - validation, JWT, inscription.
  */
@@ -16,6 +21,10 @@ export class AuthService {
 
   /**
    * Inscription d'un nouvel utilisateur.
+   * @param email string Email
+   * @param password string Mot de passe en clair
+   * @param name string Nom optionnel
+   * @returns Promise<User> Utilisateur créé (sans mot de passe)
    */
   async register(email: string, password: string, name?: string) {
     const hashed = await bcrypt.hash(password, 10);
@@ -35,6 +44,10 @@ export class AuthService {
 
   /**
    * Valide les identifiants d'un utilisateur.
+   * @param email string Email
+   * @param password string Mot de passe en clair
+   * @returns Promise<User> Utilisateur si valide
+   * @throws UnauthorizedException Si invalide
    */
   async validateUser(email: string, password: string) {
     const utilisateur = await this.usersService.findByEmail(email);
@@ -46,7 +59,9 @@ export class AuthService {
   }
 
   /**
-   * Générer un JWT pour un utilisateur
+   * Générer un JWT pour un utilisateur.
+   * @param utilisateur any Utilisateur validé
+   * @returns Promise<{access_token, user}> Token et données user
    */
   async login(utilisateur: any) {
     const payload = {

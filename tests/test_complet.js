@@ -17,6 +17,15 @@ const config = {
 };
 
 /* ---------- utilitaires HTTP ---------- */
+/**
+ * Effectue une requête HTTP vers l'API.
+ * @param method string Méthode HTTP (GET, POST, PATCH, DELETE)
+ * @param route string Route de l'API
+ * @param expectedStatus number Code HTTP attendu
+ * @param body object Corps de la requête (optionnel)
+ * @param who string Identifiant du cookie jar (default, admin, user)
+ * @returns Promise<object> Réponse JSON
+ */
 async function hit(method, route, expectedStatus, body, who = 'default') {
   const url = `${config.apiBaseUrl}${route}`;
   const label = `${method} ${route}`;
@@ -62,6 +71,13 @@ async function hit(method, route, expectedStatus, body, who = 'default') {
 }
 
 /* ---------- assertions ---------- */
+/**
+ * Vérifie qu'une propriété d'un objet a la valeur attendue.
+ * @param obj object Objet à vérifier
+ * @param key string Clé de la propriété
+ * @param expected any Valeur attendue
+ * @throws Error Si la valeur ne correspond pas
+ */
 function assertEq(obj, key, expected) {
   const actual = obj[key];
   const ok = actual === expected;
@@ -77,16 +93,38 @@ function assertEq(obj, key, expected) {
 }
 
 /* ------------ helpers  ------------ */
+/**
+ * Authentifie un utilisateur et stocke le cookie.
+ * @param email string Email de l'utilisateur
+ * @param password string Mot de passe
+ * @param who string Identifiant du cookie jar
+ * @returns Promise<boolean> True si succès
+ */
 async function login(email, password, who = 'default') {
   await hit('POST', '/auth/login', 201, { email, password }, who);
   return true; // cookie stocké dans cookieJars[who]
 }
 
+/**
+ * Inscrit un nouvel utilisateur.
+ * @param name string Nom de l'utilisateur
+ * @param email string Email
+ * @param password string Mot de passe
+ * @param who string Identifiant du cookie jar
+ * @returns Promise<boolean> True si succès
+ */
 async function registerUser(name, email, password, who = 'default') {
   await hit('POST', '/auth/register', 201, { name, email, password }, who);
   return true;
 }
 
+/**
+ * Trouve l'ID d'un utilisateur par email (admin requis).
+ * @param who string Identifiant du cookie jar admin
+ * @param email string Email recherché
+ * @returns Promise<number> ID de l'utilisateur
+ * @throws Error Si utilisateur non trouvé
+ */
 async function findUserIdByEmail(who, email) {
   const users = await hit('GET', '/users', 200, null, who);
   const u = users.find((usr) => usr.email === email);
@@ -95,6 +133,11 @@ async function findUserIdByEmail(who, email) {
 }
 
 /* ---------- modules de test ---------- */
+/**
+ * Teste le CRUD des plantes (admin).
+ * @param who string Cookie jar admin
+ * @returns Promise<{success: boolean}>
+ */
 async function testPlants(who = 'admin') {
   console.log('\n📌 TEST MODULE: PLANTS (admin)');
   const plantData = { name: 'Test Plant', price: 10, stock: 5 };
@@ -124,6 +167,11 @@ async function testPlants(who = 'admin') {
   return { success: true };
 }
 
+/**
+ * Teste le CRUD des utilisateurs (admin).
+ * @param who string Cookie jar admin
+ * @returns Promise<{success: boolean}>
+ */
 async function testUsers(who = 'admin') {
   console.log('\n📌 TEST MODULE: USERS (admin)');
   const userData = {
@@ -144,6 +192,12 @@ async function testUsers(who = 'admin') {
   return { success: true };
 }
 
+/**
+ * Teste le CRUD des commandes.
+ * @param adminWho string Cookie jar admin
+ * @param userWho string Cookie jar utilisateur
+ * @returns Promise<{success: boolean}>
+ */
 async function testOrders(adminWho = 'admin', userWho = 'user') {
   console.log('\n📌 TEST MODULE: ORDERS & ORDER ITEMS');
 
@@ -189,6 +243,13 @@ async function testOrders(adminWho = 'admin', userWho = 'user') {
   return { success: true };
 }
 
+/**
+ * Teste la gestion du profil utilisateur.
+ * @param adminWho string Cookie jar admin
+ * @param userWho string Cookie jar utilisateur
+ * @param userEmail string Email de l'utilisateur testé
+ * @returns Promise<void>
+ */
 async function testUserProfile(
   adminWho = 'admin',
   userWho = 'user',
@@ -219,6 +280,12 @@ async function testUserProfile(
   assertEq(profil, 'admin', false);
 }
 
+/**
+ * Teste les restrictions de rôles (admin vs user).
+ * @param adminWho string Cookie jar admin
+ * @param userWho string Cookie jar utilisateur
+ * @returns Promise<{success: boolean}>
+ */
 async function testAuthRoles(adminWho = 'admin', userWho = 'user') {
   console.log('\n📌 TEST MODULE: ROLES');
 
@@ -247,6 +314,11 @@ async function testAuthRoles(adminWho = 'admin', userWho = 'user') {
   return { success: true };
 }
 
+/**
+ * Teste les routes admin plantes.
+ * @param who string Cookie jar admin
+ * @returns Promise<{success: boolean}>
+ */
 async function testAdminPlants(who = 'admin') {
   console.log('\n📌 TEST MODULE: ADMIN PLANTS');
   const plantes = await hit('GET', '/admin/plants', 200, null, who);
@@ -265,6 +337,11 @@ async function testAdminPlants(who = 'admin') {
   return { success: true };
 }
 
+/**
+ * Teste les routes admin utilisateurs.
+ * @param who string Cookie jar admin
+ * @returns Promise<{success: boolean}>
+ */
 async function testAdminUsers(who = 'admin') {
   console.log('\n📌 TEST MODULE: ADMIN USERS');
   const utilisateurs = await hit('GET', '/admin/users', 200, null, who);
@@ -283,6 +360,11 @@ async function testAdminUsers(who = 'admin') {
   return { success: true };
 }
 
+/**
+ * Teste l'endpoint /auth/me.
+ * @param who string Cookie jar utilisateur
+ * @returns Promise<void>
+ */
 async function testAuthMe(who = 'user') {
   console.log('\n📌 TEST MODULE: AUTH /me');
   const me = await hit('GET', '/auth/me', 200, null, who);
@@ -291,6 +373,10 @@ async function testAuthMe(who = 'user') {
 }
 
 /* ---------- exécution des tests ---------- */
+/**
+ * Point d'entrée principal des tests.
+ * @returns Promise<number> Code de sortie (0 = succès, 1 = échec)
+ */
 async function main() {
   console.log(`🧪 Démarrage des tests: ${config.apiBaseUrl}\n`);
 

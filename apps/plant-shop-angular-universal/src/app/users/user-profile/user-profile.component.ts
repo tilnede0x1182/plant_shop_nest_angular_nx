@@ -1,10 +1,18 @@
-// # Importations
+// ==============================================================================
+// Importations
+// ==============================================================================
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ApiService, Utilisateur } from '../../services/api.service';
 import { AuthService } from '../../auth/auth.service';
 import { RouterModule } from '@angular/router';
 
+// ==============================================================================
+// Fonctions principales
+// ==============================================================================
+/**
+ * Composant profil utilisateur : affiche les informations du compte
+ */
 @Component({
   standalone: true,
   selector: 'app-user-profile',
@@ -18,6 +26,9 @@ export class UserProfileComponent implements OnInit {
 
   protected user: Utilisateur | null = null;
 
+  /**
+   * Initialise le composant et charge le profil utilisateur.
+   */
   ngOnInit(): void {
     this.auth.getCurrentUser().subscribe({
       next: (currentUser) => {

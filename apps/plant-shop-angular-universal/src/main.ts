@@ -1,3 +1,6 @@
+/**
+ * Point d'entrée principal Angular - bootstrap côté client.
+ */
 import 'zone.js';
 import { bootstrapApplication } from '@angular/platform-browser';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
