@@ -1,14 +1,8 @@
-// ==============================================================================
-// Importations
-// ==============================================================================
 import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { Request } from 'express';
 
-// ==============================================================================
-// Stratégie
-// ==============================================================================
 /**
  * Stratégie JWT - extrait et valide le token depuis les cookies.
  */

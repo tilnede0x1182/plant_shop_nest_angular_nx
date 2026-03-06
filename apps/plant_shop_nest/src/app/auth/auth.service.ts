@@ -1,14 +1,8 @@
-// ==============================================================================
-// Importations
-// ==============================================================================
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import * as bcrypt from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';
 
-// ==============================================================================
-// Service
-// ==============================================================================
 /**
  * Service d'authentification - validation, JWT, inscription.
  */

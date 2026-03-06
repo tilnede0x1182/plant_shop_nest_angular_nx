@@ -1,15 +1,9 @@
-// ==============================================================================
-// Importations
-// ==============================================================================
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService, Plante } from '../../../services/api.service';
 
-// ==============================================================================
-// Fonctions principales
-// ==============================================================================
 /**
  * Composant édition plante (admin) : formulaire de modification
  */

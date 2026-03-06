@@ -1,6 +1,3 @@
-// ==============================================================================
-// Importations
-// ==============================================================================
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app/app.module';
@@ -8,9 +5,6 @@ import * as express from 'express';
 import { join } from 'path';
 import * as cookieParser from 'cookie-parser';
 
-// ==============================================================================
-// Bootstrap
-// ==============================================================================
 /**
  * Démarre l'application NestJS avec configuration SSR optionnelle.
  * @returns Promise<void>

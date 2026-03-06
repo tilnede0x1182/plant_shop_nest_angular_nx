@@ -1,14 +1,8 @@
-// ==============================================================================
-// Importations
-// ==============================================================================
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { ApiService } from '../../../services/api.service';
 
-// ==============================================================================
-// Fonctions principales
-// ==============================================================================
 /**
  * AdminPlantsListComponent – Liste des plantes (admin)
  * Affiche un tableau CRUD des plantes (comme Rails / Next)

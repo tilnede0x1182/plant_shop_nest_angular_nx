@@ -1,15 +1,9 @@
-// ==============================================================================
-// Importations
-// ==============================================================================
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { ApiService, Utilisateur } from '../../../services/api.service';
 
-// ==============================================================================
-// Fonctions principales
-// ==============================================================================
 /**
  * Composant édition utilisateur (admin) : formulaire de modification
  */

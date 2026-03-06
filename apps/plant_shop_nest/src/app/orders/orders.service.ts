@@ -1,6 +1,3 @@
-// ==============================================================================
-// Importations
-// ==============================================================================
 import {
   Injectable,
   NotFoundException,
@@ -10,9 +7,6 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { CreateOrderDto, UpdateOrderDto } from './dto/order.dto';
 import { User } from '@prisma/client';
 
-// ==============================================================================
-// Service
-// ==============================================================================
 /**
  * Service métier des commandes, accès base via Prisma.
  */

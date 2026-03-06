@@ -1,14 +1,8 @@
-// ==============================================================================
-// Importations
-// ==============================================================================
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { ApiService } from '../../../services/api.service';
 
-// ==============================================================================
-// Fonctions principales
-// ==============================================================================
 /**
  * AdminUsersListComponent – Liste des utilisateurs (admin)
  * Affiche un tableau CRUD des utilisateurs (comme Rails / Next)

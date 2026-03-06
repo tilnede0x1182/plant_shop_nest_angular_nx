@@ -1,13 +1,7 @@
-// ==============================================================================
-// Importations
-// ==============================================================================
 import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { ROLES_KEY } from './roles.decorator';
 
-// ==============================================================================
-// Guard
-// ==============================================================================
 /**
  * Guard de rôles - vérifie que l"utilisateur a le rôle requis.
  */

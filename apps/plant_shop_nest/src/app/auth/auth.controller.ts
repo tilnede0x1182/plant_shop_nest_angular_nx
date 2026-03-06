@@ -1,6 +1,3 @@
-// ==============================================================================
-// Importations
-// ==============================================================================
 import {
   Controller,
   Post,
@@ -14,9 +11,6 @@ import { Response, Request } from 'express';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
 
-// ==============================================================================
-// Contrôleur
-// ==============================================================================
 /**
  * Contrôleur d'authentification - login, register, logout.
  */

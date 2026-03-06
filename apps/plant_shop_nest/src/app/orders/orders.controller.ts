@@ -1,6 +1,3 @@
-// ==============================================================================
-// Importations
-// ==============================================================================
 import {
   Controller,
   Get,
@@ -18,9 +15,6 @@ import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
 import { Request } from 'express';
 
-// ==============================================================================
-// Contrôleur
-// ==============================================================================
 /**
  * Contrôleur des commandes - gestion des ordres utilisateur.
  */

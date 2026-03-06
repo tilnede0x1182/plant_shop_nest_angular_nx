@@ -1,6 +1,3 @@
-// ==============================================================================
-// Importations
-// ==============================================================================
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
@@ -8,9 +5,6 @@ import { ApiService, Plante } from '../../services/api.service';
 import { AuthService } from '../../auth/auth.service';
 import { CartService } from '../../cart/cart.service';
 
-// ==============================================================================
-// Fonctions principales
-// ==============================================================================
 /**
  * Composant liste des plantes : affiche toutes les plantes en stock avec ajout au panier
  */

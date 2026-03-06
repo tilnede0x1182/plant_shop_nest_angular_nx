@@ -1,6 +1,3 @@
-// ==============================================================================
-// Importations
-// ==============================================================================
 import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
@@ -9,9 +6,6 @@ import { takeUntil } from 'rxjs/operators';
 import { ApiService, Utilisateur } from '../../../services/api.service';
 import { AuthService } from '../../../auth/auth.service';
 
-// ==============================================================================
-// Fonctions principales
-// ==============================================================================
 /**
  * Composant détail utilisateur (admin) : affiche les infos et permet suppression
  */

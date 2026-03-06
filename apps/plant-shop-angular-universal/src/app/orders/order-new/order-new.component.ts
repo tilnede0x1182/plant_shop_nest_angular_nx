@@ -1,6 +1,3 @@
-// ==============================================================================
-// Importations
-// ==============================================================================
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
@@ -8,9 +5,6 @@ import { CartService } from '../../cart/cart.service';
 import { ApiService } from '../../services/api.service';
 import { RouterModule } from '@angular/router';
 
-// ==============================================================================
-// Fonctions principales
-// ==============================================================================
 /**
  * Composant création commande : affiche le récapitulatif et permet de valider
  */

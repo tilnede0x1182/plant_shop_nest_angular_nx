@@ -1,13 +1,7 @@
-// ==============================================================================
-// Importations
-// ==============================================================================
 import { Injectable, ExecutionContext } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { Response } from 'express';
 
-// ==============================================================================
-// Guard
-// ==============================================================================
 /**
  * Guard JWT avec gestion des routes publiques et redirections.
  */

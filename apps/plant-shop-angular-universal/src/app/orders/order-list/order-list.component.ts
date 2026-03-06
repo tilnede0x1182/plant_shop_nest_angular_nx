@@ -1,14 +1,8 @@
-/// ==============================================================================
-// Importations
-// ==============================================================================
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { ApiService, Commande } from '../../services/api.service';
 
-/// ==============================================================================
-// Fonctions utilitaires
-// ==============================================================================
 /**
  * Formate la date ISO en locale
  * @param dateIso string Date au format ISO
@@ -18,9 +12,6 @@ function formaterDate(dateIso: string): string {
   return new Date(dateIso).toLocaleString();
 }
 
-// ==============================================================================
-// Fonctions principales
-// ==============================================================================
 /**
  * Composant liste des commandes - affiche les commandes de l'utilisateur.
  */

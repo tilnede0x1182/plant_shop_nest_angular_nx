@@ -1,14 +1,8 @@
-// ==============================================================================
-// Importations
-// ==============================================================================
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateUserDto, UpdateUserDto } from './dto/user.dto';
 import * as bcrypt from 'bcryptjs';
 
-// ==============================================================================
-// Service
-// ==============================================================================
 /**
  * Service métier des utilisateurs, accès base via Prisma.
  */

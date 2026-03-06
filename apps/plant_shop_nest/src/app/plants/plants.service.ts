@@ -1,13 +1,7 @@
-// ==============================================================================
-// Importations
-// ==============================================================================
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreatePlantDto, UpdatePlantDto } from './dto/plant.dto';
 
-// ==============================================================================
-// Service
-// ==============================================================================
 /**
  * Service métier des plantes, accès base via Prisma.
  */

@@ -1,15 +1,9 @@
-// ==============================================================================
-// Importations
-// ==============================================================================
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ApiService, Utilisateur } from '../../services/api.service';
 import { AuthService } from '../../auth/auth.service';
 import { RouterModule } from '@angular/router';
 
-// ==============================================================================
-// Fonctions principales
-// ==============================================================================
 /**
  * Composant profil utilisateur : affiche les informations du compte
  */

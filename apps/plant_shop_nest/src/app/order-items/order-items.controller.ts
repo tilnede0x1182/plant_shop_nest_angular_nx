@@ -1,6 +1,3 @@
-// ==============================================================================
-// Importations
-// ==============================================================================
 import {
   Controller,
   Get,
@@ -17,9 +14,6 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
 
-// ==============================================================================
-// Contrôleur
-// ==============================================================================
 /**
  * Contrôleur OrderItems - gestion des items de commande.
  */

@@ -1,14 +1,8 @@
-// ==============================================================================
-// Importations
-// ==============================================================================
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateOrderItemDto, UpdateOrderItemDto } from './dto/order-item.dto';
 import { User } from '@prisma/client';
 
-// ==============================================================================
-// Service
-// ==============================================================================
 /**
  * Service métier OrderItems, accès base via Prisma.
  */
